@@ -42,8 +42,8 @@ class Auth {
       if (!email || !password) {
         return res.status(200).json({
           EM: "Nhập thiếu dữ liệu !!!",
-          EC: "1",
-          DT: "",
+          EC: -2,
+          DT: [],
         });
       }
 
@@ -57,6 +57,7 @@ class Auth {
           .cookie("refreshToken", data.DT.refreshToken, {
             sameSite: "none",
             secure: true,
+            httpOnly: true,
           })
           .json({ EM: data.EM, EC: data.EC, DT: data.DT });
       }
@@ -79,8 +80,24 @@ class Auth {
   async logout(req, res) {
     res.json("logout");
   }
-  async getProfile(req, res) {
-    res.json("getProfile");
+
+  // [GET]  /api/v1/auth/fetchProfile
+  async fetchProfile(req, res) {
+    try {
+      const token = req.cookies.refreshToken;
+      if (!token) {
+        return res.json("Người dùng chưa đăng nhập");
+      }
+      const dataUser = jwt.verify(token, process.env.REFERSH_TOKEN_SECRET);
+      return res.status(200).json({
+        EM: "FetchProfile thành công",
+        EC: 0,
+        DT: dataUser,
+      });
+    } catch (err) {
+      console.log("err <<< ", err);
+      return res.status(500).json({ err: err });
+    }
   }
 
   //[POST] /api/v1/auth/refresh
@@ -116,7 +133,7 @@ class Auth {
           );
 
           // Gửi access token mới về cho client
-          res.json({ accessToken: newAccessToken });  
+          res.json({ accessToken: newAccessToken });
         }
       );
     } catch (err) {

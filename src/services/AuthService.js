@@ -124,6 +124,7 @@ const handleLogin = async (rawData) => {
         phone: user.phone,
         email: user.email,
         role: user.role,
+        avatar: user.avatar,
       };
 
       const accsessToken = jwt.sign(

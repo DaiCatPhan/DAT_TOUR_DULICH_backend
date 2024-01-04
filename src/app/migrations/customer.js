@@ -26,6 +26,10 @@ module.exports = {
         type: Sequelize.STRING,
       },
 
+      avatar: {
+        type: Sequelize.STRING,
+      },
+
       role: {
         type: Sequelize.STRING,
         defaultValue: "khách hàng",
