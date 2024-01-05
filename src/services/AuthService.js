@@ -18,12 +18,12 @@ const checkPassword = (inputPassword, hashPassword) => {
 
 const getUserLogin = async (email) => {
   let user = null;
-  // user = await db.Staff.findOne({
-  //   where: {
-  //     email: email,
-  //   },
-  //   raw: true,
-  // });
+  user = await db.Staff.findOne({
+    where: {
+      email: email,
+    },
+    raw: true,
+  });
 
   if (user === null) {
     user = await db.Customer.findOne({
@@ -40,11 +40,11 @@ const getUserLogin = async (email) => {
 const checkEmailExist = async (userEmail) => {
   let user = null;
 
-  // user = await db.Staff.findOne({
-  //   where: {
-  //     email: userEmail,
-  //   },
-  // });
+  user = await db.Staff.findOne({
+    where: {
+      email: userEmail,
+    },
+  });
 
   if (user === null) {
     user = await db.Customer.findOne({
@@ -76,14 +76,23 @@ const handleRegister = async (rawUserData) => {
 
     // B2
     let hashPassword = hashUserPassword(rawUserData.password);
-
     // B3
-    await db.Customer.create({
-      email: rawUserData.email,
-      username: rawUserData.username,
-      phone: rawUserData.phone,
-      password: hashPassword,
-    });
+    if (rawUserData.role) {
+      await db.Staff.create({
+        email: rawUserData.email,
+        username: rawUserData.username,
+        phone: rawUserData.phone,
+        password: hashPassword,
+        role: rawUserData.role,
+      });
+    } else {
+      await db.Customer.create({
+        email: rawUserData.email,
+        username: rawUserData.username,
+        phone: rawUserData.phone,
+        password: hashPassword,
+      });
+    }
 
     return {
       EM: "Taì khoản thành công",
@@ -131,7 +140,7 @@ const handleLogin = async (rawData) => {
         tokentData,
         process.env.ACCESS_TOKEN_SECRET,
         {
-          expiresIn: "60s",
+          expiresIn: "30s",
         }
       );
 

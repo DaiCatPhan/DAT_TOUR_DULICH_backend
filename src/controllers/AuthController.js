@@ -7,8 +7,7 @@ class Auth {
   // [POST] /api/v1/authentication/register
   async register(req, res) {
     try {
-      const { username, email, phone, password } = req.body;
-
+      const { username, email, phone, password, role } = req.body;
       // Validate
       if (!username || !email || !phone || !password) {
         return res.status(200).json({
@@ -77,18 +76,28 @@ class Auth {
     }
   }
 
+  // [GET] /api/v1/auth/logout
   async logout(req, res) {
-    res.json("logout");
+    try {
+      res.clearCookie("refreshToken");
+      return res.status(200).json({
+        EM: "Đăng xuất thành công",
+        EC: 0,
+        DT: [],
+      });
+    } catch (err) {
+      return res.status(500).json({ msg: "Error logout.", err: err.message });
+    }
   }
 
   // [GET]  /api/v1/auth/fetchProfile
   async fetchProfile(req, res) {
     try {
-      const token = req.cookies.refreshToken;
+      const token = req.headers.authorization?.split(" ")[1];
       if (!token) {
-        return res.json("Người dùng chưa đăng nhập");
-      }
-      const dataUser = jwt.verify(token, process.env.REFERSH_TOKEN_SECRET);
+        return res.status(401).json("Người dùng chưa đăng nhập");
+      } 
+      const dataUser = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
       return res.status(200).json({
         EM: "FetchProfile thành công",
         EC: 0,
