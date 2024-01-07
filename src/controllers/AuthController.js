@@ -78,6 +78,12 @@ class Auth {
 
   // [GET] /api/v1/auth/logout
   async logout(req, res) {
+    const refresh_token = req.cookies.refreshToken;
+
+    if (!refresh_token) {
+      return res.status(401).json("Bạn chưa đăng nhập");
+    }
+
     try {
       res.clearCookie("refreshToken");
       return res.status(200).json({
@@ -86,65 +92,83 @@ class Auth {
         DT: [],
       });
     } catch (err) {
-      return res.status(500).json({ msg: "Error logout.", err: err.message });
+      return res.status(500).json({ EM: "Lỗi server", EC: -5, DT: [] });
     }
   }
 
   // [GET]  /api/v1/auth/fetchProfile
   async fetchProfile(req, res) {
     try {
-      const token = req.headers.authorization?.split(" ")[1];
-      if (!token) {
-        return res.status(401).json("Người dùng chưa đăng nhập");
-      } 
-      const dataUser = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+      const authToken = req.headers.authorization;
+
+      if (!(authToken && authToken.startsWith("Bearer "))) {
+        return res
+          .status(401)
+          .json({ EM: "Người dùng chưa đăng nhập [Không tìm thấy token] " });
+      }
+
+      const accessToken = authToken.split(" ")[1];
+      const dataUser = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
       return res.status(200).json({
         EM: "FetchProfile thành công",
         EC: 0,
         DT: dataUser,
       });
     } catch (err) {
-      console.log("err <<< ", err);
-      return res.status(500).json({ err: err });
+      return res.status(401).json({ EM: "Token hết hạn hoặc không hợp lệ" });
     }
   }
 
-  //[POST] /api/v1/auth/refresh
+  //[GET] /api/v1/auth/refresh
   async refresh(req, res) {
     try {
-      const refreshToken = req.body.refreshToken; // Token gửi từ client
+      const refreshToken = req.cookie?.refreshToken; // Token gửi từ client
       if (!refreshToken) {
-        return res.status(401).json({ message: "You are not authenticated!" });
+        return res.status(401).json({ EM: "Người dùng chưa đăng nhập" });
       }
 
-      // Kiểm tra tính hợp lệ của refreshToken
-      jwt.verify(
+      const refreshTokenVerify = jwt.verify(
         refreshToken,
-        process.env.REFERSH_TOKEN_SECRET,
-        (err, user) => {
-          if (err) {
-            console.log("err>>>", err);
-            return res.status(403).json({ message: "Invalid refresh token." });
-          }
-
-          // Tạo ra token mới (access token)
-          const newAccessToken = jwt.sign(
-            {
-              /* Dữ liệu muốn lưu trong token */
-              id: user.id,
-              username: user.username,
-              phone: user.phone,
-              email: user.email,
-              role: user.role,
-            },
-            process.env.ACCESS_TOKEN_SECRET,
-            { expiresIn: "60s" }
-          );
-
-          // Gửi access token mới về cho client
-          res.json({ accessToken: newAccessToken });
-        }
+        process.env.REFERSH_TOKEN_SECRET
       );
+
+      if (!refreshTokenVerify) {
+        return res.status(401).json({ message: "Invalid refresh token." });
+      }
+
+      // Kím ra user //// Kiểm tra refetch token trong db
+      let userToken = null;
+      userToken = await db.Customer.findOne({
+        id: refreshTokenVerify.id,
+      });
+      if (userToken == null) {
+        userToken = await db.Staff.findOne({
+          id: refreshTokenVerify.id,
+        });
+      }
+
+      if (!userToken) {
+        return res.status(401).json({ EM: "Người dùng chưa đăng nhập" });
+      }
+
+      console.log(">>>>>>>>>> userToken", userToken);
+
+      // Tạo ra token mới (access token)
+      const newAccessToken = jwt.sign(
+        {
+          /* Dữ liệu muốn lưu trong token */
+          id: userToken.id,
+          username: userToken.username,
+          phone: userToken.phone,
+          email: userToken.email,
+          role: userToken.role,
+        },
+        process.env.ACCESS_TOKEN_SECRET,
+        { expiresIn: "60s" }
+      );
+
+      // Gửi access token mới về cho client
+      return res.json({ accessToken: newAccessToken });
     } catch (err) {
       console.log("err <<< ", err);
       return res.status(500).json({
@@ -154,6 +178,7 @@ class Auth {
       });
     }
   }
+  
   async test(req, res) {
     return res.json("test");
   }
