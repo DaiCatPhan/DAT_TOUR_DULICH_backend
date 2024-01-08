@@ -140,7 +140,7 @@ const handleLogin = async (rawData) => {
         tokentData,
         process.env.ACCESS_TOKEN_SECRET,
         {
-          expiresIn: "1d",
+          expiresIn: "60s",
         }
       );
 

@@ -1,6 +1,7 @@
 import AuthService from "../services/AuthService";
 import jwt from "jsonwebtoken";
 import bcrypt, { genSaltSync } from "bcrypt";
+import db from "../app/models";
 const salt = genSaltSync(10);
 
 class Auth {
@@ -76,12 +77,18 @@ class Auth {
     }
   }
 
-  // [GET] /api/v1/auth/logout
+  // [POST] /api/v1/auth/logout
   async logout(req, res) {
     const refresh_token = req.cookies.refreshToken;
 
+    console.log("refresh_token", refresh_token);
+
     if (!refresh_token) {
-      return res.status(401).json("Bạn chưa đăng nhập");
+      return res.status(401).json({
+        EM: "Không có refetshToken or bạn chưa đăng nhập",
+        EC: -2,
+        DT: [],
+      });
     }
 
     try {
@@ -119,12 +126,13 @@ class Auth {
     }
   }
 
-  //[GET] /api/v1/auth/refresh
+  //[POST] /api/v1/auth/refresh
   async refresh(req, res) {
     try {
-      const refreshToken = req.cookie?.refreshToken; // Token gửi từ client
+      const refreshToken = req.cookies.refreshToken; // Token gửi từ client
+
       if (!refreshToken) {
-        return res.status(401).json({ EM: "Người dùng chưa đăng nhập" });
+        return res.status(403).json({ EM: "Người dùng chưa đăng nhập" });
       }
 
       const refreshTokenVerify = jwt.verify(
@@ -140,18 +148,20 @@ class Auth {
       let userToken = null;
       userToken = await db.Customer.findOne({
         id: refreshTokenVerify.id,
+        refreshToken: refreshTokenVerify.refreshToken,
       });
       if (userToken == null) {
         userToken = await db.Staff.findOne({
           id: refreshTokenVerify.id,
+          refreshToken: refreshTokenVerify.refreshToken,
         });
       }
 
       if (!userToken) {
-        return res.status(401).json({ EM: "Người dùng chưa đăng nhập" });
+        return res.status(401).json({
+          EM: "Người dùng chưa đăng nhập , refreshToken không hợp lệ",
+        });
       }
-
-      console.log(">>>>>>>>>> userToken", userToken);
 
       // Tạo ra token mới (access token)
       const newAccessToken = jwt.sign(
@@ -168,7 +178,9 @@ class Auth {
       );
 
       // Gửi access token mới về cho client
-      return res.json({ accessToken: newAccessToken });
+      return res
+        .status(200)
+        .json({ EC: 0, EM: "retry thành công ", DT: newAccessToken });
     } catch (err) {
       console.log("err <<< ", err);
       return res.status(500).json({
@@ -178,7 +190,7 @@ class Auth {
       });
     }
   }
-  
+
   async test(req, res) {
     return res.json("test");
   }
