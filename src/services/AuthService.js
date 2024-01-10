@@ -136,7 +136,7 @@ const handleLogin = async (rawData) => {
         avatar: user.avatar,
       };
 
-      const accsessToken = jwt.sign(
+      const accessToken = jwt.sign(
         tokentData,
         process.env.ACCESS_TOKEN_SECRET,
         {
@@ -151,21 +151,32 @@ const handleLogin = async (rawData) => {
 
       // luu refetchToken vao db
 
-      await db.Customer.update(
-        { refresh_token: refreshToken },
-        {
-          where: {
-            id: user.id,
-          },
-        }
-      );
+      if (user.role === "khách hàng") {
+        await db.Customer.update(
+          { refresh_token: refreshToken },
+          {
+            where: {
+              id: user.id,
+            },
+          }
+        );
+      } else {
+        await db.Staff.update(
+          { refresh_token: refreshToken },
+          {
+            where: {
+              id: user.id,
+            },
+          }
+        );
+      }
 
       return {
         EM: "ok",
         EC: 0,
         DT: {
           tokentData,
-          accsessToken: accsessToken,
+          accessToken: accessToken,
           refreshToken: refreshToken,
         },
       };

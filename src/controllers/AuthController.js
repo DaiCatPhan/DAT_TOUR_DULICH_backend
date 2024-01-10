@@ -81,7 +81,7 @@ class Auth {
   async logout(req, res) {
     const refresh_token = req.cookies.refreshToken;
 
-    console.log("refresh_token", refresh_token);
+    console.log("refresh_token >>>>>>>>>", refresh_token);
 
     if (!refresh_token) {
       return res.status(401).json({
@@ -92,6 +92,57 @@ class Auth {
     }
 
     try {
+      // Kiểm tra trong db coi có refreshToken không ?
+      const refreshTokenVerify = jwt.verify(
+        refresh_token,
+        process.env.REFERSH_TOKEN_SECRET
+      );
+
+      if (!refreshTokenVerify) {
+        return res.status(403).json({ EM: "Invalid refresh token." });
+      }
+
+      let userToken = null;
+      userToken = await db.Customer.findOne({
+        id: refreshTokenVerify.id,
+        refreshToken: refreshTokenVerify.refresh_Token,
+      });
+
+      if (userToken == null) {
+        userToken = await db.Staff.findOne({
+          id: refreshTokenVerify.id,
+          refreshToken: refreshTokenVerify.refresh_Token,
+        });
+      }
+
+      if (!userToken) {
+        return res.status(401).json({
+          EM: "Người dùng chưa đăng nhập , refreshToken không hợp lệ",
+        });
+      }
+
+      // Xóa refreshToken ở db
+      if (userToken.role === "khách hàng") {
+        await db.Customer.update(
+          { refresh_token: "" },
+          {
+            where: {
+              id: userToken.id,
+            },
+          }
+        );
+      } else {
+        await db.Staff.update(
+          { refresh_token: "" },
+          {
+            where: {
+              id: userToken.id,
+            },
+          }
+        );
+      }
+
+      // Xóa refreshToken ở cookie
       res.clearCookie("refreshToken");
       return res.status(200).json({
         EM: "Đăng xuất thành công",
@@ -122,7 +173,7 @@ class Auth {
         DT: dataUser,
       });
     } catch (err) {
-      return res.status(401).json({ EM: "Token hết hạn hoặc không hợp lệ" });
+      return res.status(403).json({ EM: "Token hết hạn hoặc không hợp lệ" });
     }
   }
 
@@ -132,7 +183,7 @@ class Auth {
       const refreshToken = req.cookies.refreshToken; // Token gửi từ client
 
       if (!refreshToken) {
-        return res.status(403).json({ EM: "Người dùng chưa đăng nhập" });
+        return res.status(401).json({ EM: "Người dùng chưa đăng nhập" });
       }
 
       const refreshTokenVerify = jwt.verify(
@@ -141,7 +192,7 @@ class Auth {
       );
 
       if (!refreshTokenVerify) {
-        return res.status(401).json({ message: "Invalid refresh token." });
+        return res.status(403).json({ message: "Invalid refresh token." });
       }
 
       // Kím ra user //// Kiểm tra refetch token trong db
@@ -183,8 +234,8 @@ class Auth {
         .json({ EC: 0, EM: "retry thành công ", DT: newAccessToken });
     } catch (err) {
       console.log("err <<< ", err);
-      return res.status(500).json({
-        EM: "error server",
+      return res.status(403).json({
+        EM: "Token lỗi hoặc hết hạn",
         EC: "-5",
         DT: [],
       });
