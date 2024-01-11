@@ -2,7 +2,7 @@ import BookingSerivce from "../services/BookingSerivce";
 import EmailService from "../services/EmailService";
 class Booking {
   booking(req, res) {
-    EmailService.sendSimpleEmail();
+    // EmailService.sendSimpleEmail();
     res.json("booking");
   }
 }
