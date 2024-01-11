@@ -1,36 +1,39 @@
-// "use strict";
+// 'use strict';
 // /** @type {import('sequelize-cli').Migration} */
 // module.exports = {
 //   async up(queryInterface, Sequelize) {
-//     await queryInterface.createTable("Users", {
+//     await queryInterface.createTable('Destinations', {
 //       id: {
 //         allowNull: false,
 //         autoIncrement: true,
 //         primaryKey: true,
-//         type: Sequelize.INTEGER,
+//         type: Sequelize.INTEGER
 //       },
 
-//       ID_customer: {
-//         type: Sequelize.INTEGER,
+
+//       ID_processTour: {
+//         type: Sequelize.STRING
 //       },
-//       des: {
-//         type: Sequelize.STRING,
+      
+//       lastName: {
+//         type: Sequelize.STRING
 //       },
-//       point: {
-//         type: Sequelize.INTEGER,
+//       email: {
+//         type: Sequelize.STRING
 //       },
+
 
 //       createdAt: {
 //         allowNull: false,
-//         type: Sequelize.DATE,
+//         type: Sequelize.DATE
 //       },
 //       updatedAt: {
 //         allowNull: false,
-//         type: Sequelize.DATE,
-//       },
+//         type: Sequelize.DATE
+//       }
 //     });
 //   },
 //   async down(queryInterface, Sequelize) {
-//     await queryInterface.dropTable("Users");
-//   },
+//     await queryInterface.dropTable('Destinations');
+//   }
 // };
