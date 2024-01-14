@@ -35,6 +35,11 @@ module.exports = {
         defaultValue: "khách hàng",
       },
 
+      status: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: 1,
+      },
+
       password: {
         type: Sequelize.STRING,
       },
