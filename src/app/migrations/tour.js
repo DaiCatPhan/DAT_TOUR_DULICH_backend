@@ -14,12 +14,15 @@ module.exports = {
       domain: { type: Sequelize.STRING },
       priceAdult: { type: Sequelize.INTEGER },
       priceChild: { type: Sequelize.INTEGER },
+      price_Include: { type: Sequelize.TEXT },
+      price_NotInclude: { type: Sequelize.TEXT },
       duration: { type: Sequelize.STRING },
       descriptionHTML: { type: Sequelize.TEXT },
       descriptionTEXT: { type: Sequelize.TEXT },
       image: { type: Sequelize.STRING },
-      status: { type: Sequelize.STRING },
+      status: { type: Sequelize.STRING, defaultValue: "1" },
       vehicle: { type: Sequelize.STRING },
+
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
