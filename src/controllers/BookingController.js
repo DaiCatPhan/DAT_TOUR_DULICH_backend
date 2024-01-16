@@ -1,4 +1,4 @@
-import BookingSerivce from "../services/BookingSerivce";
+import BookingSerivce from "../services/BookingService";
 import EmailService from "../services/EmailService";
 class Booking {
   booking(req, res) {

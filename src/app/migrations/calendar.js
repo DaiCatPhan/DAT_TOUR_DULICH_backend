@@ -13,6 +13,7 @@ module.exports = {
       ID_Tour: {
         type: Sequelize.INTEGER,
       },
+      
 
       numberSeat: { type: Sequelize.STRING },
       priceAdult: { type: Sequelize.STRING },
