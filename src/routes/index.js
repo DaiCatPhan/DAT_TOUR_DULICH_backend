@@ -3,6 +3,8 @@ import BookingRouter from "./Booking";
 import TourRouter from "./Tour";
 import ProcessRouter from "./ProcessTour";
 import CalendarRouter from "./Calendar";
+import CustomerRouter from "./Customer";
+import StaffRouter from "./Staff";
 
 function route(app) {
   // authentication
@@ -10,6 +12,12 @@ function route(app) {
 
   // tour
   app.use("/api/v1/tour", TourRouter);
+
+  // customer
+  app.use("/api/v1/customer", CustomerRouter);
+
+  // staff
+  app.use("/api/v1/staff", StaffRouter);
 
   // processTour
   app.use("/api/v1/process", ProcessRouter);

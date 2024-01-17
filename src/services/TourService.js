@@ -25,8 +25,7 @@ const createTour = async (rawData) => {
     price_Include,
     price_NotInclude,
     duration,
-    descriptionHTML,
-    descriptionTEXT,
+
     vehicle,
   } = rawData;
   const checkTourExit = await checkTourName(name);
@@ -48,8 +47,6 @@ const createTour = async (rawData) => {
       price_Include: price_Include,
       price_NotInclude: price_NotInclude,
       duration: duration,
-      descriptionHTML: descriptionHTML,
-      descriptionTEXT: descriptionTEXT,
       vehicle: vehicle,
     });
 

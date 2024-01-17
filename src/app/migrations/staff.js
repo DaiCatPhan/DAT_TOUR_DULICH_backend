@@ -43,7 +43,7 @@ module.exports = {
       },
 
       status: {
-        type: Sequelize.BOOLEAN,
+        type: Sequelize.STRING,
         defaultValue: 1,
       },
 

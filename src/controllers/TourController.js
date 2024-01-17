@@ -12,8 +12,7 @@ class Tour {
         price_Include,
         price_NotInclude,
         duration,
-        descriptionHTML,
-        descriptionTEXT,
+
         vehicle,
       } = req.body;
 
@@ -27,8 +26,6 @@ class Tour {
         !price_Include ||
         !price_NotInclude ||
         !duration ||
-        !descriptionHTML ||
-        !descriptionTEXT ||
         !vehicle
       ) {
         return res.status(200).json({

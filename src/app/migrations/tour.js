@@ -17,10 +17,8 @@ module.exports = {
       price_Include: { type: Sequelize.TEXT },
       price_NotInclude: { type: Sequelize.TEXT },
       duration: { type: Sequelize.STRING },
-      descriptionHTML: { type: Sequelize.TEXT },
-      descriptionTEXT: { type: Sequelize.TEXT },
       image: { type: Sequelize.STRING },
-      status: { type: Sequelize.STRING, defaultValue: "1" },
+      status: { type: Sequelize.STRING, defaultValue: 1 },
       vehicle: { type: Sequelize.STRING },
 
       createdAt: {
