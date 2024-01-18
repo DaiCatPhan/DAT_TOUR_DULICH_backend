@@ -1,6 +1,7 @@
 import TourService from "../services/TourService";
 
 class Tour {
+  // [POST] /api/v1/tour/create
   async create(req, res) {
     try {
       const {
@@ -9,10 +10,12 @@ class Tour {
         domain,
         priceAdult,
         priceChild,
-        price_Include,
-        price_NotInclude,
+        price_Include_TEXT,
+        price_Include_HTML,
+        price_NotInclude_TEXT,
+        price_NotInclude_HTML,
         duration,
-
+        status,
         vehicle,
       } = req.body;
 
@@ -23,9 +26,12 @@ class Tour {
         !domain ||
         !priceAdult ||
         !priceChild ||
-        !price_Include ||
-        !price_NotInclude ||
+        !price_Include_TEXT ||
+        !price_Include_HTML ||
+        !price_NotInclude_TEXT ||
+        !price_NotInclude_HTML ||
         !duration ||
+        !status ||
         !vehicle
       ) {
         return res.status(200).json({
@@ -51,12 +57,15 @@ class Tour {
       });
     }
   }
+
   read(req, res) {
     res.json("read Tour");
   }
+
   update(req, res) {
     res.json("update Tour");
   }
+  
   delete(req, res) {
     res.json("delete Tour");
   }
@@ -81,11 +90,12 @@ class Tour {
     }
   }
 
+  // [PATCH]  /api/v1/tour/uploadImageTour
   async uploadImage(req, res) {
     const { ID_Tour } = req.body;
-    let imageUrl = req.file?.path;
+    let image = req.file?.path;
 
-    if (!imageUrl || !ID_Tour) {
+    if (!image || !ID_Tour) {
       return res.status(200).json({
         EM: "Nhập thiếu trường dữ liệu !!!",
         EC: -2,
@@ -94,7 +104,7 @@ class Tour {
     }
 
     try {
-      const data = await TourService.UpImageTour({ ID_Tour, imageUrl });
+      const data = await TourService.UpImageTour({ ID_Tour, image });
 
       res.status(200).json({
         EM: data.EM,

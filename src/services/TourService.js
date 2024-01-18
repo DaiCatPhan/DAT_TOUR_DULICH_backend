@@ -22,10 +22,12 @@ const createTour = async (rawData) => {
     domain,
     priceAdult,
     priceChild,
-    price_Include,
-    price_NotInclude,
+    price_Include_TEXT,
+    price_Include_HTML,
+    price_NotInclude_TEXT,
+    price_NotInclude_HTML,
     duration,
-
+    status,
     vehicle,
   } = rawData;
   const checkTourExit = await checkTourName(name);
@@ -44,10 +46,13 @@ const createTour = async (rawData) => {
       domain: domain,
       priceAdult: priceAdult,
       priceChild: priceChild,
-      price_Include: price_Include,
-      price_NotInclude: price_NotInclude,
+      price_Include_TEXT: price_Include_TEXT,
+      price_Include_HTML: price_Include_HTML,
+      price_NotInclude_TEXT: price_NotInclude_TEXT,
+      price_NotInclude_HTML: price_NotInclude_HTML,
       duration: duration,
       vehicle: vehicle,
+      status: status,
     });
 
     if (data) {
@@ -74,7 +79,7 @@ const createTour = async (rawData) => {
 };
 
 const UpImageTour = async (rawData) => {
-  const { ID_Tour, imageUrl } = rawData;
+  const { ID_Tour, image } = rawData;
 
   try {
     let tour = await db.Tour.findByPk(ID_Tour);
@@ -88,7 +93,7 @@ const UpImageTour = async (rawData) => {
     }
 
     await tour.update({
-      image: imageUrl,
+      image: image,
     });
 
     return {
@@ -100,8 +105,8 @@ const UpImageTour = async (rawData) => {
     console.log(">>> error", error);
     return {
       EM: "Loi server !!!",
-      EC: -2,
-      DT: "",
+      EC: -5,
+      DT: [],
     };
   }
 };
