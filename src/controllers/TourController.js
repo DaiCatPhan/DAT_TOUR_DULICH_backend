@@ -58,14 +58,59 @@ class Tour {
     }
   }
 
-  read(req, res) {
-    res.json("read Tour");
+  async read(req, res) {
+    try {
+      const { id } = req.query;
+
+      if (!id) {
+        return res.status(200).json({
+          EM: "Nhập thiếu trường dữ liệu !!!",
+          EC: -2,
+          DT: [],
+        });
+      }
+
+      const data = await TourService.getTourDetailById(req.query);
+
+      res.status(200).json({
+        EM: data.EM,
+        EC: data.EC,
+        DT: data.DT,
+      });
+    } catch (err) {
+      console.log("err <<< ", err);
+      return res.status(500).json({
+        EM: "error server", // error message
+        EC: "-1", // error code
+        DT: "", // data
+      });
+    }
+  }
+
+  async readAll(req, res) {
+    try {
+      const { page, limit, region, location, startDate } = req.query;
+
+      let data = await TourService.getTourWithPagination(req.query);
+      return res.status(200).json({
+        EM: data.EM,
+        EC: data.EC,
+        DT: data.DT,
+      });
+    } catch (err) {
+      console.log("err <<< ", err);
+      return res.status(500).json({
+        EM: "error server", // error message
+        EC: "-1", // error code
+        DT: "", // data
+      });
+    }
   }
 
   update(req, res) {
     res.json("update Tour");
   }
-  
+
   delete(req, res) {
     res.json("delete Tour");
   }

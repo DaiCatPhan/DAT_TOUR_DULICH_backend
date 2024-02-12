@@ -5,6 +5,7 @@ import uploadCloud from "../middlewares/upLoadImage";
 
 router.post("/create", TourController.create);
 router.get("/read", TourController.read);
+router.get("/readAll", TourController.readAll);
 router.put("/update", TourController.update);
 router.delete("/delete", TourController.delete);
 router.patch(

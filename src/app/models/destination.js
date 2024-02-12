@@ -9,6 +9,10 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      Destination.belongsTo(models.ProcessTour, {
+        foreignKey: "ID_ProcessTour",
+        targetKey: "id",
+      });
     }
   }
   Destination.init(

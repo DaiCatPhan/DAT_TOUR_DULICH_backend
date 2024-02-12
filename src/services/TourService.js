@@ -1,4 +1,6 @@
 import db from "../app/models";
+import BookingService from "./BookingService";
+const { Op } = require("sequelize");
 
 const checkTourName = async (nameTour) => {
   let tourExit = null;
@@ -111,4 +113,112 @@ const UpImageTour = async (rawData) => {
   }
 };
 
-export default { createTour, UpImageTour };
+const getTourWithPagination = async (rawData) => {
+  const { page, limit, region, location, startDate } = rawData;
+  try {
+    const offset = (page - 1) * limit;
+    const whereCondition = {};
+
+    if (region) {
+      whereCondition.domain = { [Op.like]: `%${region}%` };
+    }
+
+    if (location) {
+      whereCondition.address = { [Op.like]: `%${location}%` };
+    }
+
+    if (startDate) {
+      whereCondition.createdAt = { [Op.gte]: new Date(startDate) };
+    }
+
+    const options = {
+      where: whereCondition,
+      limit: limit ? parseInt(limit) : undefined,
+      offset: limit && page ? parseInt(offset) : undefined,
+      order: [["createdAt", "DESC"]],
+      include: [{ model: db.Calendar }, { model: db.ProcessTour }],
+    };
+
+    const { count, rows } = await db.Tour.findAndCountAll(options);
+    let data = {
+      totalRows: count,
+      tours: rows,
+    };
+    return {
+      EM: "Lấy dữ liệu thành công ",
+      EC: 0,
+      DT: data,
+    };
+  } catch (err) {
+    console.log(">> loi", err);
+    return {
+      EM: "Loi server !!!",
+      EC: -5,
+      DT: [],
+    };
+  }
+};
+
+const getTourDetailById = async (rawData) => {
+  const { id } = rawData;
+  try {
+    let dataTour = await db.Tour.findOne({
+      where: {
+        id: id,
+      },
+      include: [{ model: db.ProcessTour }],
+      raw: true,
+      nest: true,
+    });
+
+    if (!dataTour) {
+      return {
+        EM: "Tour không tồn tại !!!",
+        EC: -2,
+        DT: [],
+      };
+    }
+
+    let dataTourCalendar = await db.Calendar.findAll({
+      where: {
+        ID_Tour: id,
+      },
+      raw: true,
+      nest: true,
+    });
+
+    dataTour.Calendars = dataTourCalendar;
+
+    if (dataTour) {
+      const handleCalendarPromise = dataTour.Calendars.map(async (item) => {
+        const sochoConali = await BookingService.remainingSeats(item.id);
+        return {
+          ...item,
+          remainingSeats: sochoConali,
+        };
+      });
+      const result = await Promise.all(handleCalendarPromise);
+      dataTour.Calendars = result;
+
+      return {
+        EM: "Lấy dữ liệu thành công ",
+        EC: 0,
+        DT: dataTour,
+      };
+    }
+  } catch (error) {
+    console.log(">> error", error);
+    return {
+      EM: "Loi server !!!",
+      EC: -5,
+      DT: [],
+    };
+  }
+};
+
+export default {
+  createTour,
+  UpImageTour,
+  getTourWithPagination,
+  getTourDetailById,
+};
