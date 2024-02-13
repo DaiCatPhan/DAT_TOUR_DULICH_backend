@@ -58,6 +58,7 @@ class Tour {
     }
   }
 
+  // [GET] /api/v1/tour/read
   async read(req, res) {
     try {
       const { id } = req.query;
@@ -87,6 +88,7 @@ class Tour {
     }
   }
 
+  // [GET] /api/v1/tour/readAll
   async readAll(req, res) {
     try {
       const { page, limit, region, location, startDate } = req.query;
@@ -107,7 +109,7 @@ class Tour {
     }
   }
 
-  update(req, res) {
+  update(req, res) { 
     res.json("update Tour");
   }
 

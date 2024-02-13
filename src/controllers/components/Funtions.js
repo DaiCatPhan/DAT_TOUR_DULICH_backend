@@ -3,6 +3,8 @@ import db from "../../app/models";
 const FunDelete = async (req, res) => {
   const { id, table } = req.body;
 
+  console.log(req.body);
+
   if (!id || !table) {
     return res.status(200).json({
       EM: "Nhập thiếu dữ liệu !!!",
@@ -13,8 +15,6 @@ const FunDelete = async (req, res) => {
 
   try {
     let exitUser = await db[table].findByPk(+id);
-
-    console.log("exitUser", exitUser);
 
     if (!exitUser) {
       return res.status(200).json({

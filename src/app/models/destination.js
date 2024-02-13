@@ -19,10 +19,10 @@ module.exports = (sequelize, DataTypes) => {
     {
       ID_ProcessTour: DataTypes.INTEGER,
       name: DataTypes.STRING,
-    },
+    }, 
     {
       sequelize,
-      modelName: "Destination",
+      modelName: "Destination", 
     }
   );
   return Destination;

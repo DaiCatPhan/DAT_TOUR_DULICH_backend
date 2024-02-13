@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       Tour.hasMany(models.Calendar, {
         sourceKey: "id",
-        foreignKey: "ID_Tour",
+        foreignKey: "ID_Tour", 
       });
 
       Tour.hasOne(models.ProcessTour, {

@@ -166,7 +166,16 @@ const getTourDetailById = async (rawData) => {
       where: {
         id: id,
       },
-      include: [{ model: db.ProcessTour }],
+      include: [
+        {
+          model: db.ProcessTour,
+          include: [
+            {
+              model: db.Destination,
+            },
+          ],
+        },
+      ],
       raw: true,
       nest: true,
     });

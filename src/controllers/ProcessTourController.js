@@ -88,6 +88,8 @@ class ProcessTour {
       });
     }
   }
+
+  
 }
 
 export default new ProcessTour();
