@@ -5,6 +5,7 @@ import ProcessRouter from "./ProcessTour";
 import CalendarRouter from "./Calendar";
 import CustomerRouter from "./Customer";
 import StaffRouter from "./Staff";
+import DestinationRouter from "./Destination";
 
 function route(app) {
   // authentication
@@ -27,6 +28,9 @@ function route(app) {
 
   // Booking
   app.use("/api/v1/booking", BookingRouter);
+
+   // Destination
+   app.use("/api/v1/destination", DestinationRouter);
 }
 
 export default route;
