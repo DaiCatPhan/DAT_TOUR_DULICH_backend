@@ -109,12 +109,63 @@ class Tour {
     }
   }
 
-  update(req, res) { 
-    res.json("update Tour");
-  }
+  // [POST] /api/v1/tour/update
+  async update(req, res) {
+    try {
+      const {
+        id,
+        name,
+        address,
+        domain,
+        priceAdult,
+        priceChild,
+        price_Include_TEXT,
+        price_Include_HTML,
+        price_NotInclude_TEXT,
+        price_NotInclude_HTML,
+        duration,
+        status,
+        vehicle,
+      } = req.body;
 
-  delete(req, res) {
-    res.json("delete Tour");
+      // Validate
+      if (
+        !id ||
+        !name ||
+        !address ||
+        !domain ||
+        !priceAdult ||
+        !priceChild ||
+        !price_Include_TEXT ||
+        !price_Include_HTML ||
+        !price_NotInclude_TEXT ||
+        !price_NotInclude_HTML ||
+        !duration ||
+        !status ||
+        !vehicle
+      ) {
+        return res.status(200).json({
+          EM: "Nhập thiếu trường dữ liệu !!!",
+          EC: -2,
+          DT: [],
+        });
+      }
+
+      const data = await TourService.updateTour(req.body);
+
+      res.status(200).json({
+        EM: data.EM,
+        EC: data.EC,
+        DT: data.DT,
+      });
+    } catch (err) {
+      console.log("err <<< ", err);
+      return res.status(500).json({
+        EM: "error server",
+        EC: -5,
+        DT: [],
+      });
+    }
   }
 
   async search(req, res) {

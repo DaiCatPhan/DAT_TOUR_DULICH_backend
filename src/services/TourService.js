@@ -80,6 +80,69 @@ const createTour = async (rawData) => {
   }
 };
 
+const updateTour = async (rawData) => {
+  const {
+    id,
+    name,
+    address,
+    domain,
+    priceAdult,
+    priceChild,
+    price_Include_TEXT,
+    price_Include_HTML,
+    price_NotInclude_TEXT,
+    price_NotInclude_HTML,
+    duration,
+    status,
+    vehicle,
+  } = rawData;
+  const checkTourExit = await db.Tour.findByPk(+id);
+  if (!checkTourExit) {
+    return {
+      EM: "Tour không tồn tại !!!",
+      EC: -1,
+      DT: [],
+    };
+  }
+
+  try {
+    const data = await db.Tour.update(
+      {
+        name: name,
+        address: address,
+        domain: domain,
+        priceAdult: priceAdult,
+        priceChild: priceChild,
+        price_Include_TEXT: price_Include_TEXT,
+        price_Include_HTML: price_Include_HTML,
+        price_NotInclude_TEXT: price_NotInclude_TEXT,
+        price_NotInclude_HTML: price_NotInclude_HTML,
+        duration: duration,
+        vehicle: vehicle,
+        status: status,
+      },
+      {
+        where: {
+          id: id,
+        },
+      }
+    );
+
+    return {
+      EM: "Cập nhật Tour thành công ",
+      EC: 0,
+      DT: data,
+    };
+  } catch (error) {
+    console.log(">>> error", error);
+    return {
+      EM: "Loi server !!!",
+      EC: -5,
+      DT: [],
+    };
+  }
+};
+
 const UpImageTour = async (rawData) => {
   const { ID_Tour, image } = rawData;
 
@@ -240,4 +303,5 @@ export default {
   UpImageTour,
   getTourWithPagination,
   getTourDetailById,
+  updateTour,
 };
