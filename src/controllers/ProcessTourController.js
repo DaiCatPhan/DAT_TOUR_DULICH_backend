@@ -35,7 +35,7 @@ class ProcessTour {
     const { ID_Tour, idProcessTour, descriptionHTML, descriptionTEXT } =
       req.body;
 
-    if (!ID_Tour || !idProcessTour || !descriptionHTML || !descriptionTEXT) {
+    if (!ID_Tour || !descriptionHTML || !descriptionTEXT) {
       return res.status(200).json({
         EM: "Nhập thiếu trường dữ liệu !!!",
         EC: -2,
@@ -88,8 +88,6 @@ class ProcessTour {
       });
     }
   }
-
-  
 }
 
 export default new ProcessTour();

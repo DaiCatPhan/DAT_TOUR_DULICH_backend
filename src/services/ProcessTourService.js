@@ -71,10 +71,15 @@ const updateProcessTour = async (rawData) => {
     }
 
     if (!isExitsProcessTour) {
+      const createProcess = await db.ProcessTour.create({
+        ID_Tour: ID_Tour,
+        descriptionHTML: descriptionHTML,
+        descriptionTEXT: descriptionTEXT,
+      });
       return {
-        EM: "Chương Trình Tour không tồn tại !!!  ",
-        EC: -1,
-        DT: [],
+        EM: "Tạo chương trình Tour thành công  ",
+        EC: 0,
+        DT: createProcess,
       };
     }
 
