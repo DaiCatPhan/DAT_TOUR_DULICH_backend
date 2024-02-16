@@ -1,11 +1,12 @@
 import CalendarService from "../services/CalendarService";
 
 class Calendar {
-  
   async create(req, res) {
     try {
       const { ID_Tour, numberSeat, startDay, endDay, priceAdult, priceChild } =
         req.body;
+
+      console.log("reqbody", req.body);
 
       if (
         !ID_Tour ||

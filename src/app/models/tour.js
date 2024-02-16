@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       Tour.hasMany(models.Calendar, {
         sourceKey: "id",
-        foreignKey: "ID_Tour", 
+        foreignKey: "ID_Tour",
       });
 
       Tour.hasOne(models.ProcessTour, {
@@ -23,8 +23,7 @@ module.exports = (sequelize, DataTypes) => {
   Tour.init(
     {
       name: DataTypes.STRING,
-      address: DataTypes.STRING,
-      domain: DataTypes.STRING,
+      type: DataTypes.STRING,
       priceAdult: DataTypes.INTEGER,
       priceChild: DataTypes.INTEGER,
       price_Include_TEXT: DataTypes.TEXT,

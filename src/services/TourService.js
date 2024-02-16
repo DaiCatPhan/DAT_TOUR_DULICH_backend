@@ -20,8 +20,7 @@ const checkTourName = async (nameTour) => {
 const createTour = async (rawData) => {
   const {
     name,
-    address,
-    domain,
+    type,
     priceAdult,
     priceChild,
     price_Include_TEXT,
@@ -44,8 +43,7 @@ const createTour = async (rawData) => {
   try {
     const data = await db.Tour.create({
       name: name,
-      address: address,
-      domain: domain,
+      type: type,
       priceAdult: priceAdult,
       priceChild: priceChild,
       price_Include_TEXT: price_Include_TEXT,
@@ -57,25 +55,17 @@ const createTour = async (rawData) => {
       status: status,
     });
 
-    if (data) {
-      return {
-        EM: "Tạo Tour thành công ",
-        EC: 0,
-        DT: data,
-      };
-    } else {
-      return {
-        EM: "Tạo Tour thất bại ",
-        EC: -1,
-        DT: data,
-      };
-    }
+    return {
+      EM: "Tạo Tour thành công ",
+      EC: 0,
+      DT: data,
+    };
   } catch (error) {
     console.log(">>> error", error);
     return {
       EM: "Loi server !!!",
-      EC: -2,
-      DT: "",
+      EC: -5,
+      DT: [],
     };
   }
 };
@@ -84,8 +74,7 @@ const updateTour = async (rawData) => {
   const {
     id,
     name,
-    address,
-    domain,
+    type,
     priceAdult,
     priceChild,
     price_Include_TEXT,
@@ -109,8 +98,7 @@ const updateTour = async (rawData) => {
     const data = await db.Tour.update(
       {
         name: name,
-        address: address,
-        domain: domain,
+        type: type,
         priceAdult: priceAdult,
         priceChild: priceChild,
         price_Include_TEXT: price_Include_TEXT,
@@ -177,17 +165,17 @@ const UpImageTour = async (rawData) => {
 };
 
 const getTourWithPagination = async (rawData) => {
-  const { page, limit, region, location, startDate } = rawData;
+  const { name, page, limit, type, startDate } = rawData;
   try {
     const offset = (page - 1) * limit;
     const whereCondition = {};
 
-    if (region) {
-      whereCondition.domain = { [Op.like]: `%${region}%` };
+    if (name) {
+      whereCondition.name = { [Op.like]: `%${name}%` };
     }
 
-    if (location) {
-      whereCondition.address = { [Op.like]: `%${location}%` };
+    if (type) {
+      whereCondition.type = { [Op.like]: `%${type}%` };
     }
 
     if (startDate) {

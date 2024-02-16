@@ -14,6 +14,31 @@ const createCalender = async (rawData) => {
       };
     }
 
+    // Kiểm tra startDay phải lớn hơn hoặc bằng ngày hiện tại
+
+    const startDateTime = new Date(startDay);
+    const currentDateTime = new Date();
+
+    console.log("startDateTime", startDateTime);
+    console.log("currentDateTime", currentDateTime);
+
+    if (startDateTime <= currentDateTime) {
+      return {
+        EM: "Ngày bắt đầu phải lớn hơn hoặc bằng ngày hiện tại",
+        EC: -3,
+        DT: [],
+      };
+    }
+
+    // Kiểm tra endDay phải lớn hơn hoặc bằng ngày startDay
+    if (new Date(endDay) <= new Date(startDay)) {
+      return {
+        EM: "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu",
+        EC: -3,
+        DT: [],
+      };
+    }
+
     const dataCalendar = await db.Calendar.create({
       ID_Tour: ID_Tour,
       numberSeat: numberSeat,

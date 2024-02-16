@@ -6,8 +6,7 @@ class Tour {
     try {
       const {
         name,
-        address,
-        domain,
+        type,
         priceAdult,
         priceChild,
         price_Include_TEXT,
@@ -22,8 +21,7 @@ class Tour {
       // Validate
       if (
         !name ||
-        !address ||
-        !domain ||
+        !type ||
         !priceAdult ||
         !priceChild ||
         !price_Include_TEXT ||
@@ -91,7 +89,7 @@ class Tour {
   // [GET] /api/v1/tour/readAll
   async readAll(req, res) {
     try {
-      const { page, limit, region, location, startDate } = req.query;
+      const { name, page, limit, type, startDate } = req.query;
 
       let data = await TourService.getTourWithPagination(req.query);
       return res.status(200).json({
@@ -115,8 +113,7 @@ class Tour {
       const {
         id,
         name,
-        address,
-        domain,
+        type,
         priceAdult,
         priceChild,
         price_Include_TEXT,
@@ -132,8 +129,7 @@ class Tour {
       if (
         !id ||
         !name ||
-        !address ||
-        !domain ||
+        !type ||
         !priceAdult ||
         !priceChild ||
         !price_Include_TEXT ||
