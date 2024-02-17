@@ -18,19 +18,8 @@ const checkTourName = async (nameTour) => {
 };
 
 const createTour = async (rawData) => {
-  const {
-    name,
-    type,
-    priceAdult,
-    priceChild,
-    price_Include_TEXT,
-    price_Include_HTML,
-    price_NotInclude_TEXT,
-    price_NotInclude_HTML,
-    duration,
-    status,
-    vehicle,
-  } = rawData;
+  const { name, type, priceAdult, priceChild, duration, status, vehicle } =
+    rawData;
   const checkTourExit = await checkTourName(name);
   if (checkTourExit) {
     return {
@@ -46,10 +35,6 @@ const createTour = async (rawData) => {
       type: type,
       priceAdult: priceAdult,
       priceChild: priceChild,
-      price_Include_TEXT: price_Include_TEXT,
-      price_Include_HTML: price_Include_HTML,
-      price_NotInclude_TEXT: price_NotInclude_TEXT,
-      price_NotInclude_HTML: price_NotInclude_HTML,
       duration: duration,
       vehicle: vehicle,
       status: status,
@@ -77,10 +62,6 @@ const updateTour = async (rawData) => {
     type,
     priceAdult,
     priceChild,
-    price_Include_TEXT,
-    price_Include_HTML,
-    price_NotInclude_TEXT,
-    price_NotInclude_HTML,
     duration,
     status,
     vehicle,
@@ -101,10 +82,6 @@ const updateTour = async (rawData) => {
         type: type,
         priceAdult: priceAdult,
         priceChild: priceChild,
-        price_Include_TEXT: price_Include_TEXT,
-        price_Include_HTML: price_Include_HTML,
-        price_NotInclude_TEXT: price_NotInclude_TEXT,
-        price_NotInclude_HTML: price_NotInclude_HTML,
         duration: duration,
         vehicle: vehicle,
         status: status,

@@ -9,10 +9,6 @@ class Tour {
         type,
         priceAdult,
         priceChild,
-        price_Include_TEXT,
-        price_Include_HTML,
-        price_NotInclude_TEXT,
-        price_NotInclude_HTML,
         duration,
         status,
         vehicle,
@@ -24,10 +20,6 @@ class Tour {
         !type ||
         !priceAdult ||
         !priceChild ||
-        !price_Include_TEXT ||
-        !price_Include_HTML ||
-        !price_NotInclude_TEXT ||
-        !price_NotInclude_HTML ||
         !duration ||
         !status ||
         !vehicle
@@ -116,10 +108,6 @@ class Tour {
         type,
         priceAdult,
         priceChild,
-        price_Include_TEXT,
-        price_Include_HTML,
-        price_NotInclude_TEXT,
-        price_NotInclude_HTML,
         duration,
         status,
         vehicle,
@@ -132,10 +120,6 @@ class Tour {
         !type ||
         !priceAdult ||
         !priceChild ||
-        !price_Include_TEXT ||
-        !price_Include_HTML ||
-        !price_NotInclude_TEXT ||
-        !price_NotInclude_HTML ||
         !duration ||
         !status ||
         !vehicle

@@ -1,7 +1,8 @@
 "use strict";
+
 const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
-  class Destination extends Model {
+  class ViewedTour extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -9,21 +10,21 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Destination.belongsTo(models.ProcessTour, {
-        foreignKey: "ID_ProcessTour",
-        targetKey: "id",
-      });
+      // viewedTour.belongsTo(models.ProcessTour, {
+      //   foreignKey: "ID_ProcessTour",
+      //   targetKey: "id",
+      // });
     }
   }
-  Destination.init(
+  ViewedTour.init(
     {
-      ID_ProcessTour: DataTypes.INTEGER,
-      name: DataTypes.STRING,
-    }, 
+      ID_Customer: DataTypes.INTEGER,
+      ID_Tour: DataTypes.INTEGER,
+    },
     {
       sequelize,
-      modelName: "Destination", 
+      modelName: "ViewedTour",
     }
   );
-  return Destination;
+  return ViewedTour;
 };

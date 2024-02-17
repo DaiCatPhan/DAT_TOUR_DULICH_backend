@@ -14,10 +14,7 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: "id",
       });
 
-      ProcessTour.hasMany(models.Destination, {
-        sourceKey: "id",
-        foreignKey: "ID_ProcessTour",
-      });
+     
     }
   }
   ProcessTour.init(

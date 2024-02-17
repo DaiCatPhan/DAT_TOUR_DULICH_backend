@@ -18,6 +18,8 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: "id",
         foreignKey: "ID_Tour",
       });
+
+      // Tour.belongsToMany(models.Customer, { through: "ViewedTour" });
     }
   }
   Tour.init(
@@ -26,10 +28,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       priceAdult: DataTypes.INTEGER,
       priceChild: DataTypes.INTEGER,
-      price_Include_TEXT: DataTypes.TEXT,
-      price_Include_HTML: DataTypes.TEXT,
-      price_NotInclude_TEXT: DataTypes.TEXT,
-      price_NotInclude_HTML: DataTypes.TEXT,
       duration: DataTypes.STRING,
       image: DataTypes.STRING,
       status: DataTypes.STRING,
