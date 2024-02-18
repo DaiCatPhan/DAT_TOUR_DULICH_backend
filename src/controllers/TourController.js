@@ -97,7 +97,7 @@ class Tour {
         DT: "", // data
       });
     }
-  }
+  } 
 
   // [POST] /api/v1/tour/update
   async update(req, res) {

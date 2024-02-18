@@ -203,20 +203,7 @@ const getTourDetailById = async (rawData) => {
       nest: true,
     });
 
-    const dataDestination = await db.Destination.findAll({
-      where: {
-        ID_ProcessTour: dataTour.ProcessTour.id,
-      },
-      include: [
-        {
-          model: db.ProcessTour,
-        },
-      ],
-      raw: true,
-      nest: true,
-    });
-
-    dataTour.Destinations = dataDestination;
+    
 
     if (!dataTour) {
       return {
