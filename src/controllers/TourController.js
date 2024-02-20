@@ -81,7 +81,7 @@ class Tour {
   // [GET] /api/v1/tour/readAll
   async readAll(req, res) {
     try {
-      const { name, page, limit, type, startDate } = req.query;
+      const { name, page, limit, type, startDay } = req.query;
 
       let data = await TourService.getTourWithPagination(req.query);
       return res.status(200).json({

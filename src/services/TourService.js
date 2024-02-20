@@ -56,16 +56,8 @@ const createTour = async (rawData) => {
 };
 
 const updateTour = async (rawData) => {
-  const {
-    id,
-    name,
-    type,
-    priceAdult,
-    priceChild,
-    duration,
-    status,
-    vehicle,
-  } = rawData;
+  const { id, name, type, priceAdult, priceChild, duration, status, vehicle } =
+    rawData;
   const checkTourExit = await db.Tour.findByPk(+id);
   if (!checkTourExit) {
     return {
@@ -142,7 +134,7 @@ const UpImageTour = async (rawData) => {
 };
 
 const getTourWithPagination = async (rawData) => {
-  const { name, page, limit, type, startDate } = rawData;
+  const { name, page, limit, type, startDay = new Date() } = rawData;
   try {
     const offset = (page - 1) * limit;
     const whereCondition = {};
@@ -155,16 +147,53 @@ const getTourWithPagination = async (rawData) => {
       whereCondition.type = { [Op.like]: `%${type}%` };
     }
 
-    if (startDate) {
-      whereCondition.createdAt = { [Op.gte]: new Date(startDate) };
-    }
+    // if (startDay) {
+    //   const options = {
+    //     where: whereCondition,
+    //     limit: limit ? parseInt(limit) : undefined,
+    //     offset: limit && page ? parseInt(offset) : undefined,
+    //     order: [["createdAt", "DESC"]],
+    //     include: [
+    //       {
+    //         model: db.Calendar,
+    //         where: {
+    //           startDay: {
+    //             [Op.gte]: startDay,
+    //           },
+    //         },
+    //       },
+    //       { model: db.ProcessTour },
+    //     ],
+    //   };
+
+    //   const { count, rows } = await db.Tour.findAndCountAll(options);
+    //   let data = {
+    //     totalRows: count,
+    //     tours: rows,
+    //   };
+    //   return {
+    //     EM: "Lấy dữ liệu thành công ",
+    //     EC: 0,
+    //     DT: data,
+    //   };
+    // }
 
     const options = {
       where: whereCondition,
       limit: limit ? parseInt(limit) : undefined,
       offset: limit && page ? parseInt(offset) : undefined,
       order: [["createdAt", "DESC"]],
-      include: [{ model: db.Calendar }, { model: db.ProcessTour }],
+      include: [
+        {
+          model: db.Calendar,
+          where: {
+            startDay: {
+              [Op.gte]: startDay,
+            },
+          },
+        },
+        { model: db.ProcessTour },
+      ],
     };
 
     const { count, rows } = await db.Tour.findAndCountAll(options);
@@ -202,8 +231,6 @@ const getTourDetailById = async (rawData) => {
       raw: true,
       nest: true,
     });
-
-    
 
     if (!dataTour) {
       return {
