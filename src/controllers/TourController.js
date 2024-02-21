@@ -83,7 +83,7 @@ class Tour {
     try {
       const { name, page, limit, type, startDay } = req.query;
 
-      let data = await TourService.getTourWithPagination(req.query);
+      let data = await TourService.getTourWithPagination(req.query); 
       return res.status(200).json({
         EM: data.EM,
         EC: data.EC,

@@ -5,9 +5,24 @@ const createViewedTour = async (rawData) => {
   try {
     const { ID_Customer, ID_Tour } = rawData;
 
+    const exitTourViewed = await db.ViewedTour.findOne({
+      where: {
+        ID_Customer: ID_Customer,
+        ID_Tour: ID_Tour,
+      },
+    });
+
+    if (exitTourViewed) {
+      return {
+        EM: "Tour đã lưu",
+        EC: -2,
+        DT: [],
+      };
+    }
+
     const createViewed = await db.ViewedTour.create({
       ID_Customer: +ID_Customer,
-      ID_Tour: ID_Tour,
+      ID_Tour: +ID_Tour,
     });
 
     return {
@@ -26,27 +41,32 @@ const createViewedTour = async (rawData) => {
 };
 
 const readsViewed = async (rawData) => {
-  const { ID_Customer, ID_Tour } = rawData;
+  const { ID_Customer } = rawData;
   try {
+    // const exitCustomer = await db.Customer.findByPk(ID_Customer);
+    // if (!exitCustomer) {
+    //   return {
+    //     EM: "Khách hàng không tồn tại !!!",
+    //     EC: -2,
+    //     DT: [],
+    //   };
+    // }
     let dataViewed = await db.ViewedTour.findAll({
       where: {
         ID_Customer: +ID_Customer,
-        ID_Tour: +ID_Tour,
       },
-      // include: [
-      //   {
-      //     model: db.Customer,
-      //   },
-      //   {
-      //     model: db.Tour,
-      //   },
-      // ],
+      include: [
+        {
+          model: db.Customer,
+        },
+        {
+          model: db.Tour,
+        },
+      ],
 
       raw: true,
       nest: true,
     });
-
-    console.log("dataViewed >>>>", dataViewed);
 
     return {
       EM: "Lấy dữ liệu thành công ",

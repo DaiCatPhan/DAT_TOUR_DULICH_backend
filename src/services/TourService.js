@@ -134,7 +134,7 @@ const UpImageTour = async (rawData) => {
 };
 
 const getTourWithPagination = async (rawData) => {
-  const { name, page, limit, type, startDay = new Date() } = rawData;
+  const { name, page, limit, type, startDay } = rawData;
   try {
     const offset = (page - 1) * limit;
     const whereCondition = {};
@@ -147,36 +147,36 @@ const getTourWithPagination = async (rawData) => {
       whereCondition.type = { [Op.like]: `%${type}%` };
     }
 
-    // if (startDay) {
-    //   const options = {
-    //     where: whereCondition,
-    //     limit: limit ? parseInt(limit) : undefined,
-    //     offset: limit && page ? parseInt(offset) : undefined,
-    //     order: [["createdAt", "DESC"]],
-    //     include: [
-    //       {
-    //         model: db.Calendar,
-    //         where: {
-    //           startDay: {
-    //             [Op.gte]: startDay,
-    //           },
-    //         },
-    //       },
-    //       { model: db.ProcessTour },
-    //     ],
-    //   };
+    if (startDay) {
+      const options = {
+        where: whereCondition,
+        limit: limit ? parseInt(limit) : undefined,
+        offset: limit && page ? parseInt(offset) : undefined,
+        order: [["createdAt", "DESC"]],
+        include: [
+          {
+            model: db.Calendar,
+            where: {
+              startDay: {
+                [Op.gte]: startDay,
+              },
+            },
+          },
+          { model: db.ProcessTour },
+        ],
+      };
 
-    //   const { count, rows } = await db.Tour.findAndCountAll(options);
-    //   let data = {
-    //     totalRows: count,
-    //     tours: rows,
-    //   };
-    //   return {
-    //     EM: "Lấy dữ liệu thành công ",
-    //     EC: 0,
-    //     DT: data,
-    //   };
-    // }
+      const { count, rows } = await db.Tour.findAndCountAll(options);
+      let data = {
+        totalRows: count,
+        tours: rows,
+      };
+      return {
+        EM: "Lấy dữ liệu thành công ",
+        EC: 0,
+        DT: data,
+      };
+    }
 
     const options = {
       where: whereCondition,
@@ -186,11 +186,6 @@ const getTourWithPagination = async (rawData) => {
       include: [
         {
           model: db.Calendar,
-          where: {
-            startDay: {
-              [Op.gte]: startDay,
-            },
-          },
         },
         { model: db.ProcessTour },
       ],

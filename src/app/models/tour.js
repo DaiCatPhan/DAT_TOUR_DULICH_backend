@@ -19,7 +19,11 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "ID_Tour",
       });
 
-      // Tour.belongsToMany(models.Customer, { through: "ViewedTour" });
+      Tour.hasMany(models.ViewedTour, {
+        sourceKey: "id",
+        foreignKey: "ID_Tour", 
+      });
+       
     }
   }
   Tour.init(

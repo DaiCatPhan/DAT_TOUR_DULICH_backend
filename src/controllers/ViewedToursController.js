@@ -33,9 +33,9 @@ class Destination {
   // [GET] /api/v1/viewed/reads
   async readsViewedTour(req, res) {
     try {
-      const { ID_Customer, ID_Tour } = req.query;
+      const { ID_Customer } = req.query;
 
-      if (!ID_Customer || !ID_Tour) {
+      if (!ID_Customer ) {
         return res.status(200).json({
           EM: "Nhập thiếu trường dữ liệu !!!",
           EC: -2,
