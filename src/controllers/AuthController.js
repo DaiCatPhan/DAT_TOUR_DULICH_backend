@@ -13,8 +13,8 @@ class Auth {
       if (!username || !email || !phone || !password) {
         return res.status(200).json({
           EM: "Nhập thiếu dữ liệu !!!",
-          EC: "-1",
-          DT: "",
+          EC: -2,
+          DT: [],
         });
       }
 
@@ -159,7 +159,7 @@ class Auth {
     try {
       const authToken = req.headers.authorization;
 
-      if (!(authToken && authToken.startsWith("Bearer "))) {
+      if (!(authToken && authToken.startsWith("Bearer"))) {
         return res
           .status(401)
           .json({ EM: "Người dùng chưa đăng nhập [Không tìm thấy token] " });

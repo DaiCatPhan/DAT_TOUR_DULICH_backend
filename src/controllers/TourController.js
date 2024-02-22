@@ -81,9 +81,9 @@ class Tour {
   // [GET] /api/v1/tour/readAll
   async readAll(req, res) {
     try {
-      const { name, page, limit, type, startDay } = req.query;
+      const {id ,  name, page, limit, type, startDay } = req.query;
 
-      let data = await TourService.getTourWithPagination(req.query); 
+      let data = await TourService.getTourWithPagination(req.query);  
       return res.status(200).json({
         EM: data.EM,
         EC: data.EC,
@@ -93,8 +93,8 @@ class Tour {
       console.log("err <<< ", err);
       return res.status(500).json({
         EM: "error server", // error message
-        EC: "-1", // error code
-        DT: "", // data
+        EC: -5, // error code
+        DT: [], // data
       });
     }
   } 

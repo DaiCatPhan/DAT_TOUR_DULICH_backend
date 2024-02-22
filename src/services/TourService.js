@@ -134,10 +134,15 @@ const UpImageTour = async (rawData) => {
 };
 
 const getTourWithPagination = async (rawData) => {
-  const { name, page, limit, type, startDay } = rawData;
+  const { id, name, page, limit, type, startDay } = rawData;
+  console.log('rawData',rawData);
   try {
     const offset = (page - 1) * limit;
     const whereCondition = {};
+
+    if (id) {
+      whereCondition.id = +id;
+    }
 
     if (name) {
       whereCondition.name = { [Op.like]: `%${name}%` };
