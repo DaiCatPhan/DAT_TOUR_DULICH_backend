@@ -32,7 +32,7 @@ class Category {
 
   // [GET] /api/v1/category/readAll
   async readAll(req, res) {
-    const { limit, page } = req.query;
+    const {type , value ,  limit, page } = req.query;
 
     try {
       const data = await CategoryService.readAllCategory(req.query);

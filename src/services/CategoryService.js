@@ -1,9 +1,25 @@
 import db from "../app/models";
+const { Op } = require("sequelize");
 
 const createCategory = async (rawData) => {
   const { type, value } = rawData;
 
   try {
+    const exit = await db.Category.findOne({
+      where: {
+        type: type,
+        value: value,
+      },
+    });
+
+    if (exit) {
+      return {
+        EM: "Doanh mục đã tồn tại !!!",
+        EC: -2,
+        DT: [],
+      };
+    }
+
     const data = await db.Category.create({
       type: type,
       value: value,
@@ -25,10 +41,17 @@ const createCategory = async (rawData) => {
 };
 
 const readAllCategory = async (rawData) => {
-  const { page, limit } = rawData;
+  const { type, value, page, limit } = rawData;
   try {
     const offset = (page - 1) * limit;
     const whereCondition = {};
+
+    if (type) {
+      whereCondition.type = { [Op.like]: `%${type}%` };
+    }
+    if (value) {
+      whereCondition.value = { [Op.like]: `%${value}%` };
+    }
 
     const options = {
       where: whereCondition,
@@ -46,7 +69,7 @@ const readAllCategory = async (rawData) => {
     const { count, rows } = await db.Category.findAndCountAll(options);
     let data = {
       totalRows: count,
-      tours: rows,
+      categoris: rows,
     };
     return {
       EM: "Lấy dữ liệu thành công ",
