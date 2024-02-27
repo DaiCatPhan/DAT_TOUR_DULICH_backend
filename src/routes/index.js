@@ -7,6 +7,7 @@ import CustomerRouter from "./Customer";
 import StaffRouter from "./Staff";
 import ViewedTourRouter from "./ViewedTour";
 import BlogRouter from "./Blog";
+import CategoryRouter from "./Category";
 
 function route(app) {
   // authentication
@@ -35,6 +36,9 @@ function route(app) {
 
   // Blog
   app.use("/api/v1/blog", BlogRouter);
+
+  // Category
+  app.use("/api/v1/category", CategoryRouter);
 }
 
 export default route;
