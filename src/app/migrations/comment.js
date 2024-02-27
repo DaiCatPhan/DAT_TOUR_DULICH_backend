@@ -13,7 +13,7 @@ module.exports = {
         type: Sequelize.INTEGER,
       },
       ID_Blog: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.INTEGER, 
       },
       ID_Tour: {
         type: Sequelize.INTEGER,

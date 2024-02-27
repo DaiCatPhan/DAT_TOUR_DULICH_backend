@@ -2,7 +2,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("typevouchers", {
+    await queryInterface.createTable("Typevouchers", {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -10,7 +10,7 @@ module.exports = {
         type: Sequelize.INTEGER,
       },
       typeVoucher: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING,
       },
       value: {
         type: Sequelize.INTEGER,
@@ -33,6 +33,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("typevouchers");
+    await queryInterface.dropTable("Typevouchers");
   },
 };
