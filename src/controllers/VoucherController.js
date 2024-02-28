@@ -34,6 +34,7 @@ class Voucher {
   updateTypeVoucher(req, res) {
     res.json("create");
   }
+  
   readAllTypeVoucher(req, res) {
     res.json("create");
   }

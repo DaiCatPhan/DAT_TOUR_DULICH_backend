@@ -117,7 +117,7 @@ class Blog {
 
   // [GET ] /api/v1/blog/readAll
   async readAll(req, res) {
-    const { title, page, limit } = req.query;
+    const { createdAt, title, page, limit } = req.query;
 
     try {
       const data = await BlogService.readAllBlog(req.query);

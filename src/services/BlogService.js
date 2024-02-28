@@ -1,5 +1,7 @@
 import { raw } from "express";
 import db from "../app/models";
+const { Op } = require("sequelize");
+
 
 const createBlog = async (rawData) => {
   const { title, shortdescription, image, contentTEXT, contentHTML } = rawData;
@@ -115,13 +117,17 @@ const readBlog = async (rawData) => {
 };
 
 const readAllBlog = async (rawData) => {
-  const { type, page, limit } = rawData;
+  const { createdAt, title, page, limit } = rawData;
+  console.log(rawData);
   try {
     const offset = (page - 1) * limit;
     const whereCondition = {};
 
-    if (type) {
-      whereCondition.type = { [Op.like]: `%${type}%` };
+    if (title) {
+      whereCondition.title = { [Op.like]: `%${title}%` };
+    }
+    if (createdAt) {
+      whereCondition.createdAt = createdAt;
     }
 
     const options = {
@@ -140,7 +146,7 @@ const readAllBlog = async (rawData) => {
     const { count, rows } = await db.Blog.findAndCountAll(options);
     let data = {
       totalRows: count,
-      tours: rows,
+      blogs: rows,
     };
     return {
       EM: "Lấy dữ liệu thành công ",
