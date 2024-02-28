@@ -9,12 +9,20 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      VoucherUser.belongsTo(models.Voucher, {
+        foreignKey: "ID_Voucher",
+        targetKey: "id",
+      });
+      VoucherUser.belongsTo(models.Customer, {
+        foreignKey: "ID_Customer",
+        targetKey: "id",
+      });
     }
   }
   VoucherUser.init(
     {
       ID_Voucher: DataTypes.INTEGER,
-      ID_User: DataTypes.INTEGER,
+      ID_Customer: DataTypes.INTEGER,
       status: DataTypes.STRING,
     },
     {

@@ -12,7 +12,7 @@ module.exports = {
       ID_Voucher: {
         type: Sequelize.INTEGER,
       },
-      ID_User: {
+      ID_Customer: {
         type: Sequelize.INTEGER,
       },
       status: {

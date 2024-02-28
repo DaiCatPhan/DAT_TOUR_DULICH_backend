@@ -69,7 +69,7 @@ const readAllCategory = async (rawData) => {
     const { count, rows } = await db.Category.findAndCountAll(options);
     let data = {
       totalRows: count,
-      categoris: rows,
+      categories: rows,
     };
     return {
       EM: "Lấy dữ liệu thành công ",

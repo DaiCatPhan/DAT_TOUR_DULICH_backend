@@ -9,6 +9,10 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      TypeVoucher.hasMany(models.Voucher, {
+        sourceKey: "id",
+        foreignKey: "ID_Typevoucher",
+      });
     }
   }
   TypeVoucher.init(

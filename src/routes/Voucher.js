@@ -15,4 +15,9 @@ router.put("/update", VoucherController.updateVoucher);
 router.get("/readAll", VoucherController.readAllVoucher);
 router.delete("/delete", Funtion.FunDelete);
 
+// VOUCHER_USER
+router.post("/create_voucherUser", VoucherController.createVoucherUser);
+router.get("/read_voucherUser", VoucherController.readVoucherUser);
+
+
 export default router;
