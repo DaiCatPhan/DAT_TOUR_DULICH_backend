@@ -9,7 +9,16 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      ID_Typevoucher: {
+      typeVoucher: {
+        type: Sequelize.STRING,
+      },
+      nameVoucher: {
+        type: Sequelize.STRING,
+      },
+      amount: {
+        type: Sequelize.INTEGER,
+      },
+      value: {
         type: Sequelize.INTEGER,
       },
       fromDate: {
@@ -17,12 +26,6 @@ module.exports = {
       },
       toDate: {
         type: Sequelize.DATE,
-      },
-      amount: {
-        type: Sequelize.INTEGER,
-      },
-      codeVoucher: {
-        type: Sequelize.STRING,
       },
 
       createdAt: {

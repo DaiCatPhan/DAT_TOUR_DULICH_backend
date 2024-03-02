@@ -9,23 +9,20 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Voucher.belongsTo(models.TypeVoucher, {
-        foreignKey: "ID_Typevoucher",
-        targetKey: "id",
-      });
       Voucher.hasMany(models.VoucherUser, {
         sourceKey: "id",
-        foreignKey: "ID_Voucher", 
+        foreignKey: "ID_Voucher",
       });
     }
   }
   Voucher.init(
     {
-      ID_Typevoucher: DataTypes.INTEGER,
-      fromDate: DataTypes.STRING,
-      toDate: DataTypes.STRING,
+      typeVoucher: DataTypes.STRING,
+      nameVoucher: DataTypes.STRING,
       amount: DataTypes.STRING,
-      codeVoucher: DataTypes.STRING,
+      value: DataTypes.INTEGER,
+      fromDate: DataTypes.DATE,
+      toDate: DataTypes.DATE,
     },
     {
       sequelize,

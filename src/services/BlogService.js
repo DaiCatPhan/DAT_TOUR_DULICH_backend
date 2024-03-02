@@ -2,7 +2,6 @@ import { raw } from "express";
 import db from "../app/models";
 const { Op } = require("sequelize");
 
-
 const createBlog = async (rawData) => {
   const { title, shortdescription, image, contentTEXT, contentHTML } = rawData;
 
@@ -84,7 +83,6 @@ const updateBlog = async (rawData) => {
 
 const readBlog = async (rawData) => {
   const { id } = rawData;
-  console.log("rawData", rawData);
   try {
     const exitBlog = await db.Blog.findByPk(+id);
     if (!exitBlog) {
@@ -127,7 +125,12 @@ const readAllBlog = async (rawData) => {
       whereCondition.title = { [Op.like]: `%${title}%` };
     }
     if (createdAt) {
-      whereCondition.createdAt = createdAt;
+      whereCondition.createdAt = {
+        [Op.between]: [
+          new Date(createdAt),
+          new Date(new Date(createdAt).setHours(23, 59, 59)),
+        ],
+      };
     }
 
     const options = {

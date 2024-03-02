@@ -1,52 +1,30 @@
 import db from "../app/models";
 
-// TYPE VOUCHER
-const create_TypeVoucher = async (rawData) => {
-  const { typeVoucher, value, maxValue, minValue } = rawData;
-
-  try {
-    const data = await db.TypeVoucher.create({
-      typeVoucher: typeVoucher,
-      value: value,
-      maxValue: maxValue,
-      minValue: minValue,
-    });
-
-    return {
-      EM: "Tạo kiểu voucher thành công ",
-      EC: 0,
-      DT: data,
-    };
-  } catch (error) {
-    console.log(">>> error", error);
-    return {
-      EM: "Loi server !!!",
-      EC: -5,
-      DT: [],
-    };
-  }
-};
-
-// VOUCHER
+// ==================== VOUCHER =====================
 const create_Voucher = async (rawData) => {
-  const { ID_Typevoucher, fromDate, toDate, amount, codeVoucher } = rawData;
+  const { typeVoucher, value, fromDate, toDate, amount, nameVoucher } = rawData;
 
   try {
-    const exitTypeVoucher = await db.TypeVoucher.findByPk(ID_Typevoucher);
-    if (!exitTypeVoucher) {
+    const exitTypeVoucher = await db.Voucher.findOne({
+      where: {
+        nameVoucher: nameVoucher,
+      },
+    });
+    if (exitTypeVoucher) {
       return {
-        EM: "Kiểu voucher không tồn tại !!!",
+        EM: "Tên voucher đã tồn tại !!!",
         EC: -2,
         DT: [],
       };
     }
 
     const data = await db.Voucher.create({
-      ID_Typevoucher: ID_Typevoucher,
+      typeVoucher: typeVoucher,
+      value: value,
       fromDate: fromDate,
       toDate: toDate,
       amount: amount,
-      codeVoucher: codeVoucher,
+      nameVoucher: nameVoucher,
     });
 
     return {
@@ -63,8 +41,118 @@ const create_Voucher = async (rawData) => {
     };
   }
 };
+const readAll_Voucher = async (rawData) => {
+  const { typeVoucher, nameVoucher, fromDate, page, limit } = rawData;
 
-// VOUCHER USER
+  try {
+    const offset = (page - 1) * limit;
+    const whereCondition = {};
+
+    if (typeVoucher) {
+      whereCondition.typeVoucher = { [Op.like]: `%${typeVoucher}%` };
+    }
+    if (nameVoucher) {
+      whereCondition.nameVoucher = { [Op.like]: `%${nameVoucher}%` };
+    }
+
+    if (fromDate) {
+      whereCondition.fromDate = {
+        [Op.between]: [
+          new Date(fromDate),
+          new Date(new Date(fromDate).setHours(23, 59, 59)),
+        ],
+      };
+    }
+
+    const options = {
+      where: whereCondition,
+      limit: limit ? parseInt(limit) : undefined,
+      offset: limit && page ? parseInt(offset) : undefined,
+      order: [["createdAt", "DESC"]],
+      //   include: [
+      //     {
+      //       model: db.Calendar,
+      //     },
+      //     { model: db.ProcessTour },
+      //   ],
+    };
+
+    const { count, rows } = await db.Voucher.findAndCountAll(options);
+    let data = {
+      totalRows: count,
+      vouchers: rows,
+    };
+    return {
+      EM: "Lấy dữ liệu thành công ",
+      EC: 0,
+      DT: data,
+    };
+  } catch (err) {
+    console.log(">> loi", err);
+    return {
+      EM: "Loi server !!!",
+      EC: -5,
+      DT: [],
+    };
+  }
+};
+const update_Voucher = async (rawData) => {
+  const { id, typeVoucher, value, fromDate, toDate, amount, nameVoucher } =
+    rawData;
+
+  const exitVoucher = await db.Voucher.findByPk(id);
+  if (!exitVoucher) {
+    return {
+      EM: "Voucher không tồn tại !!!!",
+      EC: -2,
+      DT: [],
+    };
+  }
+
+  const condition = {};
+  if (typeVoucher) {
+    condition.typeVoucher = typeVoucher;
+  }
+  if (value) {
+    condition.value = value;
+  }
+  if (amount) {
+    condition.amount = amount;
+  }
+
+  if (fromDate) {
+    condition.fromDate = fromDate;
+  }
+  if (toDate) {
+    condition.toDate = toDate;
+  }
+  if (nameVoucher) {
+    condition.nameVoucher = nameVoucher;
+  }
+
+  try {
+    const data = await db.Voucher.update(condition, {
+      where: {
+        id: id,
+      },
+    });
+
+    return {
+      EM: "Cập nhật kiểu voucher thành công ",
+      EC: 0,
+      DT: data,
+    };
+  } catch (error) {
+    console.log(">>> error", error);
+    return {
+      EM: "Loi server !!!",
+      EC: -5,
+      DT: [],
+    };
+  }
+};
+
+//================== VOUCHER USER ======================
 const create_VoucherUser = async (rawData) => {
   const { ID_Voucher, ID_Customer, status } = rawData;
 
@@ -120,7 +208,6 @@ const create_VoucherUser = async (rawData) => {
   }
 };
 
-
 const read_VoucherUser = async (rawData) => {
   const { id } = rawData;
 
@@ -129,7 +216,7 @@ const read_VoucherUser = async (rawData) => {
       where: {
         ID_Customer: id,
       },
-      include: [{ model: db.Voucher  }, { model: db.Customer }],
+      include: [{ model: db.Voucher }, { model: db.Customer }],
     });
 
     if (!data) {
@@ -156,8 +243,9 @@ const read_VoucherUser = async (rawData) => {
 };
 
 export default {
-  create_TypeVoucher,
   create_Voucher,
+  readAll_Voucher,
+  update_Voucher,
   create_VoucherUser,
   read_VoucherUser,
 };

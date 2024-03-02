@@ -1,49 +1,19 @@
 import VoucherService from "../services/VoucherService";
 
 class Voucher {
-  // TYPE VOUCHER
-  // [POST] /api/v1/blog/create
-
-  async createTypeVoucher(req, res) {
-    const { typeVoucher, value, maxValue, minValue } = req.body;
-
-    if (!typeVoucher || !value || !maxValue || !minValue) {
-      return res.status(200).json({
-        EM: "Nhập thiếu trường dữ liệu !!!",
-        EC: -2,
-        DT: [],
-      });
-    }
-
-    try {
-      const data = await VoucherService.create_TypeVoucher(req.body);
-      return res.status(200).json({
-        EM: data.EM,
-        EC: data.EC,
-        DT: data.DT,
-      });
-    } catch (err) {
-      console.log("err <<< ", err);
-      return res.status(500).json({
-        EM: "error server",
-        EC: -5,
-        DT: [],
-      });
-    }
-  }
-  updateTypeVoucher(req, res) {
-    res.json("create");
-  }
-  
-  readAllTypeVoucher(req, res) {
-    res.json("create");
-  }
-
-  //    VOUCHER
+  // =================================   VOUCHER  =============================
   async createVoucher(req, res) {
-    const { ID_Typevoucher, fromDate, toDate, amount, codeVoucher } = req.body;
+    const { typeVoucher, value, fromDate, toDate, amount, nameVoucher } =
+      req.body;
 
-    if (!ID_Typevoucher || !fromDate || !toDate || !amount || !codeVoucher) {
+    if (
+      !typeVoucher ||
+      !value ||
+      !fromDate ||
+      !toDate ||
+      !amount ||
+      !nameVoucher
+    ) {
       return res.status(200).json({
         EM: "Nhập thiếu trường dữ liệu !!!",
         EC: -2,
@@ -67,14 +37,59 @@ class Voucher {
       });
     }
   }
-  updateVoucher(req, res) {
-    res.json("create");
-  }
-  readAllVoucher(req, res) {
-    res.json("create");
+
+  // [PUT] /api/v1/voucher/update
+  async updateVoucher(req, res) {
+    const { id, typeVoucher, value, fromDate, toDate, amount, nameVoucher } =
+      req.body;
+
+    if (!id) {
+      return res.status(200).json({
+        EM: "Nhập thiếu trường dữ liệu !!!",
+        EC: -2,
+        DT: [],
+      });
+    }
+
+    try {
+      const data = await VoucherService.update_Voucher(req.body);
+      return res.status(200).json({
+        EM: data.EM,
+        EC: data.EC,
+        DT: data.DT,
+      });
+    } catch (err) {
+      console.log("err <<< ", err);
+      return res.status(500).json({
+        EM: "error server",
+        EC: -5,
+        DT: [],
+      });
+    }
   }
 
-  // VOUCHER_USER
+  // [GET] /api/v1/voucher/readAll
+  async readAllVoucher(req, res) {
+    const { typeVoucher, nameVoucher, fromDate, page, limit } = req.query;
+
+    try {
+      const data = await VoucherService.readAll_Voucher(req.query);
+      return res.status(200).json({
+        EM: data.EM,
+        EC: data.EC,
+        DT: data.DT,
+      });
+    } catch (err) {
+      console.log("err <<< ", err);
+      return res.status(500).json({
+        EM: "error server",
+        EC: -5,
+        DT: [],
+      });
+    }
+  }
+
+  //================================ VOUCHER_USER ================================
   async createVoucherUser(req, res) {
     const { ID_Voucher, ID_Customer, status } = req.body;
 
