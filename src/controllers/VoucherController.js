@@ -3,8 +3,15 @@ import VoucherService from "../services/VoucherService";
 class Voucher {
   // =================================   VOUCHER  =============================
   async createVoucher(req, res) {
-    const { typeVoucher, value, fromDate, toDate, amount, nameVoucher } =
-      req.body;
+    const {
+      typeVoucher,
+      value,
+      fromDate,
+      toDate,
+      remainAmount,
+      amount,
+      nameVoucher,
+    } = req.body;
 
     if (
       !typeVoucher ||

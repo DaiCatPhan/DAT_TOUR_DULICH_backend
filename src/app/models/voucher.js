@@ -19,7 +19,8 @@ module.exports = (sequelize, DataTypes) => {
     {
       typeVoucher: DataTypes.STRING,
       nameVoucher: DataTypes.STRING,
-      amount: DataTypes.STRING,
+      amount: DataTypes.INTEGER,
+      remainAmount: DataTypes.INTEGER,
       value: DataTypes.INTEGER,
       fromDate: DataTypes.DATE,
       toDate: DataTypes.DATE,

@@ -15,6 +15,9 @@ module.exports = {
       nameVoucher: {
         type: Sequelize.STRING,
       },
+      remainAmount: {
+        type: Sequelize.INTEGER,
+      },
       amount: {
         type: Sequelize.INTEGER,
       },

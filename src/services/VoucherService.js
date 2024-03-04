@@ -2,7 +2,15 @@ import db from "../app/models";
 
 // ==================== VOUCHER =====================
 const create_Voucher = async (rawData) => {
-  const { typeVoucher, value, fromDate, toDate, amount, nameVoucher } = rawData;
+  const {
+    typeVoucher,
+    value,
+    fromDate,
+    toDate,
+    remainAmount,
+    amount,
+    nameVoucher,
+  } = rawData;
 
   try {
     const exitTypeVoucher = await db.Voucher.findOne({
@@ -24,6 +32,7 @@ const create_Voucher = async (rawData) => {
       fromDate: fromDate,
       toDate: toDate,
       amount: amount,
+      remainAmount: amount,
       nameVoucher: nameVoucher,
     });
 
