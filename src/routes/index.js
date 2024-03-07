@@ -9,6 +9,7 @@ import ViewedTourRouter from "./ViewedTour";
 import BlogRouter from "./Blog";
 import CategoryRouter from "./Category";
 import VoucherRouter from "./Voucher";
+import CommentRouter from "./Comment";
 
 function route(app) {
   // authentication
@@ -43,6 +44,9 @@ function route(app) {
 
   // Voucher
   app.use("/api/v1/voucher", VoucherRouter);
+
+  // Comment
+  app.use("/api/v1/comment", CommentRouter);
 }
 
 export default route;

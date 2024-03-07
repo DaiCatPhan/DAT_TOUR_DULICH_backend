@@ -21,6 +21,9 @@ module.exports = {
       start: {
         type: Sequelize.INTEGER,
       },
+      parentID: {
+        type: Sequelize.INTEGER,
+      },
 
       content: {
         type: Sequelize.STRING,

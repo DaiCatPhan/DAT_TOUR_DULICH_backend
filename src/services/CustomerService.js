@@ -58,12 +58,13 @@ const readCustomer = async (rawData) => {
 
     const options = {
       where: whereCondition,
-      //   include: [
-      //     {
-      //       model: db.Calendar,
-      //     },
-      //     { model: db.ProcessTour },
-      //   ],
+      include: [
+        {
+          model: db.VoucherUser,
+          include: { model: db.Voucher },
+        },
+        // { model: db.ProcessTour },
+      ],
     };
 
     const data = await db.Customer.findOne(options);

@@ -27,7 +27,7 @@ class Customer {
     try {
       const { id } = req.query;
 
-      let data = await CustomerService.readCustomer(req.query);
+      let data = await CustomerService.readCustomer(req.query); 
       return res.status(200).json({
         EM: data.EM,
         EC: data.EC,

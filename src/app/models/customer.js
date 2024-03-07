@@ -13,6 +13,14 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: "id",
         foreignKey: "ID_Customer",
       });
+      Customer.hasMany(models.VoucherUser, {
+        sourceKey: "id",
+        foreignKey: "ID_Customer",
+      });
+      Customer.hasMany(models.Comment, {
+        sourceKey: "id",
+        foreignKey: "ID_Customer",
+      });
     }
   }
   Customer.init(

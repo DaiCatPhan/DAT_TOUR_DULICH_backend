@@ -9,14 +9,28 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      
+      // Comment.belongsTo(models.Customer, {
+      //   foreignKey: "ID_Customer",
+      //   targetKey: "id",
+      // });
+      // Comment.belongsTo(models.Blog, {
+      //   foreignKey: "ID_Blog",
+      //   targetKey: "id",
+      // });
+      Comment.belongsTo(models.Blog, {
+        foreignKey: "ID_Tour",
+        targetKey: "id",
+      });
     }
   }
   Comment.init(
     {
-      ID_Customer: DataTypes.STRING,
-      ID_Blog: DataTypes.STRING,
-      ID_Tour: DataTypes.STRING,
-      start: DataTypes.STRING,
+      ID_Customer: DataTypes.INTEGER,
+      ID_Blog: DataTypes.INTEGER,
+      ID_Tour: DataTypes.INTEGER,
+      start: DataTypes.INTEGER,
+      parentID: DataTypes.INTEGER,
       content: DataTypes.STRING,
     },
     {
