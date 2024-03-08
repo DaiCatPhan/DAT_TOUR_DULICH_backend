@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      
+
       // Comment.belongsTo(models.Customer, {
       //   foreignKey: "ID_Customer",
       //   targetKey: "id",
@@ -32,6 +32,7 @@ module.exports = (sequelize, DataTypes) => {
       start: DataTypes.INTEGER,
       parentID: DataTypes.INTEGER,
       content: DataTypes.STRING,
+      status: DataTypes.STRING,
     },
     {
       sequelize,

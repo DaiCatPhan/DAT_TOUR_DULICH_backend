@@ -2,7 +2,7 @@ import CommentService from "../services/CommentService";
 
 class Comment {
   // [POST] /api/v1/comment/create
-  async createCommentBlog(req, res) {
+  async createComment(req, res) {
     const { ID_Customer, ID_Blog, ID_Tour, parentID, content, star } = req.body;
 
     if (!ID_Customer || (!ID_Blog && !ID_Tour) || !content) {
