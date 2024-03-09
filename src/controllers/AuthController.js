@@ -81,11 +81,9 @@ class Auth {
   async logout(req, res) {
     const refresh_token = req.cookies.refreshToken;
 
-    console.log("refresh_token >>>>>>>>>", refresh_token);
-
     if (!refresh_token) {
       return res.status(401).json({
-        EM: "Không có refetshToken or bạn chưa đăng nhập",
+        EM: "Không có refreshToken hoặc bạn chưa đăng nhập",
         EC: -2,
         DT: [],
       });
@@ -108,13 +106,6 @@ class Auth {
         refreshToken: refreshTokenVerify.refresh_Token,
       });
 
-      if (userToken == null) {
-        userToken = await db.Staff.findOne({
-          id: refreshTokenVerify.id,
-          refreshToken: refreshTokenVerify.refresh_Token,
-        });
-      }
-
       if (!userToken) {
         return res.status(401).json({
           EM: "Người dùng chưa đăng nhập , refreshToken không hợp lệ",
@@ -122,25 +113,15 @@ class Auth {
       }
 
       // Xóa refreshToken ở db
-      if (userToken.role === "khách hàng") {
-        await db.Customer.update(
-          { refresh_token: "" },
-          {
-            where: {
-              id: userToken.id,
-            },
-          }
-        );
-      } else {
-        await db.Staff.update(
-          { refresh_token: "" },
-          {
-            where: {
-              id: userToken.id,
-            },
-          }
-        );
-      }
+
+      await db.Customer.update(
+        { refresh_token: "" },
+        {
+          where: {
+            id: userToken.id,
+          },
+        }
+      );
 
       // Xóa refreshToken ở cookie
       res.clearCookie("refreshToken");

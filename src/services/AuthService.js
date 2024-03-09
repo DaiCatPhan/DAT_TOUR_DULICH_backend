@@ -18,21 +18,13 @@ const checkPassword = (inputPassword, hashPassword) => {
 
 const getUserLogin = async (email) => {
   let user = null;
-  user = await db.Staff.findOne({
+
+  user = await db.Customer.findOne({
     where: {
       email: email,
     },
     raw: true,
   });
-
-  if (user === null) {
-    user = await db.Customer.findOne({
-      where: {
-        email: email,
-      },
-      raw: true,
-    });
-  }
 
   return user;
 };
@@ -40,19 +32,11 @@ const getUserLogin = async (email) => {
 const checkEmailExist = async (userEmail) => {
   let user = null;
 
-  user = await db.Staff.findOne({
+  user = await db.Customer.findOne({
     where: {
       email: userEmail,
     },
   });
-
-  if (user === null) {
-    user = await db.Customer.findOne({
-      where: {
-        email: userEmail,
-      },
-    });
-  }
 
   if (user === null) {
     return false;
@@ -61,43 +45,46 @@ const checkEmailExist = async (userEmail) => {
 };
 
 const handleRegister = async (rawUserData) => {
-  // B1. kiểm tra email  -> B2. hashpassword -> B3. create new user
+  const { username, email, phone, password, role } = rawUserData;
+
   try {
     // B1
-    let isEmailExitst = await checkEmailExist(rawUserData.email);
+    let isEmailExitst = await checkEmailExist(email);
 
     if (isEmailExitst === true) {
       return {
         EM: "Email đã tồn tại !!!",
-        EC: -1,
+        EC: -2,
         DT: [],
       };
     }
 
     // B2
-    let hashPassword = hashUserPassword(rawUserData.password);
+    let hashPassword = hashUserPassword(password);
     // B3
-    if (rawUserData.role) {
-      await db.Staff.create({
-        email: rawUserData.email,
-        username: rawUserData.username,
-        phone: rawUserData.phone,
-        password: hashPassword,
-        role: rawUserData.role,
-      });
-    } else {
-      await db.Customer.create({
-        email: rawUserData.email,
-        username: rawUserData.username,
-        phone: rawUserData.phone,
-        password: hashPassword,
-      });
+    const condition = {};
+    if (username) {
+      condition.username = username;
+    }
+    if (email) {
+      condition.email = email;
+    }
+    if (phone) {
+      condition.phone = phone;
+    }
+    if (password) {
+      condition.password = hashPassword;
+    }
+    if (role) {
+      condition.role = role;
     }
 
+    const data = await db.Customer.create(condition);
+
     return {
-      EM: "Taì khoản thành công",
+      EM: "Đăng ký tài khoản thành công",
       EC: 0,
-      DT: [],
+      DT: data,
     };
   } catch (err) {
     console.log(">>> err ", err);
@@ -111,7 +98,7 @@ const handleRegister = async (rawUserData) => {
 
 const handleLogin = async (rawData) => {
   try {
-    var user = await getUserLogin(rawData.email);
+    const user = await getUserLogin(rawData.email);
 
     if (user === null) {
       return {
@@ -134,6 +121,7 @@ const handleLogin = async (rawData) => {
         email: user.email,
         role: user.role,
         avatar: user.avatar,
+        address: user.address,
       };
 
       const accessToken = jwt.sign(
@@ -151,25 +139,14 @@ const handleLogin = async (rawData) => {
 
       // luu refetchToken vao db
 
-      if (user.role === "khách hàng") {
-        await db.Customer.update(
-          { refresh_token: refreshToken },
-          {
-            where: {
-              id: user.id,
-            },
-          }
-        );
-      } else {
-        await db.Staff.update(
-          { refresh_token: refreshToken },
-          {
-            where: {
-              id: user.id,
-            },
-          }
-        );
-      }
+      await db.Customer.update(
+        { refresh_token: refreshToken },
+        {
+          where: {
+            id: user.id,
+          },
+        }
+      );
 
       return {
         EM: "ok",
@@ -194,7 +171,7 @@ const handleLogin = async (rawData) => {
     return {
       EM: "Loi server !!!",
       EC: -5,
-      DT: "",
+      DT: [],
     };
   }
 };
