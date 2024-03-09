@@ -10,6 +10,10 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      Blog.hasMany(models.Comment, {
+        sourceKey: "id",
+        foreignKey: "ID_Blog",
+      });
     }
   }
   Blog.init(

@@ -115,8 +115,7 @@ const readBlog = async (rawData) => {
 };
 
 const readAllBlog = async (rawData) => {
-  const { createdAt, title, page, limit } = rawData;
-  console.log(rawData);
+  const { createdAt, title, page, limit, status } = rawData;
   try {
     const offset = (page - 1) * limit;
     const whereCondition = {};
@@ -138,19 +137,43 @@ const readAllBlog = async (rawData) => {
       limit: limit ? parseInt(limit) : undefined,
       offset: limit && page ? parseInt(offset) : undefined,
       order: [["createdAt", "DESC"]],
-      //   include: [
-      //     {
-      //       model: db.Calendar,
-      //     },
-      //     { model: db.ProcessTour },
-      //   ],
+      raw: true,
     };
 
     const { count, rows } = await db.Blog.findAndCountAll(options);
-    let data = {
+
+    const dataBlog = {
       totalRows: count,
       blogs: rows,
     };
+
+    const blogsWithComments = await Promise.all(
+      dataBlog.blogs.map(async (item) => {
+        const { count, rows } = await db.Comment.findAndCountAll({
+          where: {
+            ID_Blog: item.id,
+            status: status || "0",
+          },
+          raw: true,
+        });
+
+        const dataComment = {
+          totalRows: count,
+          comments: rows,
+        };
+
+        return {
+          ...item,
+          dataComment,
+        };
+      })
+    );
+
+    let data = {
+      totalRows: count,
+      blogs: blogsWithComments,
+    };
+
     return {
       EM: "Lấy dữ liệu thành công ",
       EC: 0,

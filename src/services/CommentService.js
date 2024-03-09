@@ -3,7 +3,8 @@ import db from "../app/models";
 const { Op } = require("sequelize");
 
 const createComment = async (rawData) => {
-  const { ID_Customer, ID_Blog, ID_Tour, parentID, content, star } = rawData;
+  const { ID_Customer, ID_Blog, ID_Tour, parentID, content, star, status } =
+    rawData;
 
   try {
     const condition = {};
@@ -25,6 +26,8 @@ const createComment = async (rawData) => {
     if (star) {
       condition.star = star;
     }
+    condition.status = "0";
+
     const data = await db.Comment.create(condition);
 
     return {
@@ -124,10 +127,17 @@ const getAllCommentsRecursive = async (parentId) => {
 };
 
 const getAllCommentByBlogId = async (rawData) => {
-  const { id } = rawData;
+  const { id, status } = rawData;
   try {
+    const condition = {};
+    condition.ID_BLog = id;
+    condition.parentID = null;
+    if (status) {
+      condition.status = status;
+    }
+
     const topLevelComments = await db.Comment.findAll({
-      where: { ID_BLog: id, parentID: null },
+      where: condition,
       order: [["createdAt", "DESC"]],
       raw: true,
     });
@@ -142,8 +152,6 @@ const getAllCommentByBlogId = async (rawData) => {
           attributes: ["username"],
         }
       );
-
-      console.log("topLevelComments >>>>>", topLevelComments);
     }
 
     return {

@@ -3,7 +3,8 @@ import CommentService from "../services/CommentService";
 class Comment {
   // [POST] /api/v1/comment/create
   async createComment(req, res) {
-    const { ID_Customer, ID_Blog, ID_Tour, parentID, content, star } = req.body;
+    const { ID_Customer, ID_Blog, ID_Tour, parentID, content, star, status } =
+      req.body;
 
     if (!ID_Customer || (!ID_Blog && !ID_Tour) || !content) {
       return res.status(200).json({
@@ -31,7 +32,7 @@ class Comment {
   }
 
   async getAllCommentByBlogId(req, res) {
-    const { id } = req.query;
+    const { id , status } = req.query;
 
     if (!id) {
       return res.status(200).json({
