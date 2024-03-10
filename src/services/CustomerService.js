@@ -1,13 +1,26 @@
+import { Op } from "sequelize";
 import db from "../app/models";
 
 const readAllCustomer = async (rawData) => {
-  const { email, username, page, limit } = rawData;
+  const { role, phone, email, username, page, limit } = rawData;
 
   try {
     const offset = (page - 1) * limit;
     const whereCondition = {};
+    if (role) {
+      if (role == "!khách hàng") {
+        whereCondition.role = { [Op.ne]: "khách hàng" };
+      } else {
+        whereCondition.role = { [Op.like]: `%${role}%` };
+      }
+    }
+
     if (username) {
       whereCondition.username = { [Op.like]: `%${username}%` };
+    }
+
+    if (phone) {
+      whereCondition.phone = { [Op.like]: `%${phone}%` };
     }
 
     if (email) {

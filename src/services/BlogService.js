@@ -114,6 +114,27 @@ const readBlog = async (rawData) => {
   }
 };
 
+const getAllCommentsRecursive = async (parentId) => {
+  const childComments = await db.Comment.findAll({
+    where: { parentId },
+    raw: true,
+  });
+
+  for (let i = 0; i < childComments.length; i++) {
+    childComments[i].childComment = await getAllCommentsRecursive(
+      childComments[i].id
+    );
+    childComments[i].customer = await db.Customer.findByPk(
+      childComments[i].ID_Customer,
+      {
+        attributes: ["username"],
+      }
+    );
+  }
+
+  return childComments;
+};
+
 const readAllBlog = async (rawData) => {
   const { createdAt, title, page, limit, status } = rawData;
   try {
@@ -153,9 +174,17 @@ const readAllBlog = async (rawData) => {
           where: {
             ID_Blog: item.id,
             status: status || "0",
+            parentID: null,
           },
           raw: true,
         });
+
+        for (let i = 0; i < rows.length; i++) {
+          rows[i].childComment = await getAllCommentsRecursive(rows[i].id);
+          rows[i].customer = await db.Customer.findByPk(rows[i].ID_Customer, {
+            attributes: ["username"],
+          });
+        }
 
         const dataComment = {
           totalRows: count,

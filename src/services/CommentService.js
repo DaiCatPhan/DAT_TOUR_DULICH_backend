@@ -45,55 +45,44 @@ const createComment = async (rawData) => {
   }
 };
 
-const getAllCommentByBlogId1 = async (rawData) => {
-  const { id } = rawData;
+const updateComment = async (rawData) => {
+  const { id, ID_Customer, ID_Blog, ID_Tour, parentID, content, star, status } =
+    rawData;
 
   try {
-    let res = await db.Comment.findAll({
-      where: {
-        ID_Blog: id,
-        parentID: null,
-      },
-      order: [["createdAt", "DESC"]],
-      raw: true,
-    });
-
-    if (res && res.length > 0) {
-      for (let i = 0; i < res.length; i++) {
-        console.log("res >>>>>>>>>. ", res);
-
-        const childCmt = await db.Comment.findAll({
-          where: { parentID: res[i].id },
-          raw: true,
-        });
-
-        console.log("childCmt ", childCmt);
-
-        res[i].childComment = await Promise.all(
-          childCmt.map(async (item) => {
-            return {
-              ...item,
-              user: await db.Customer.findByPk(item.ID_Customer, {
-                attributes: { exclude: ["password"] },
-              }),
-            };
-          })
-        );
-
-        console.log("res[i].childComment ", res[i].childComment);
-        res[i].user = await db.Customer.findOne({
-          where: { id: res[i].ID_Customer },
-          attributes: {
-            exclude: ["password"],
-          },
-        });
-      }
+    const condition = {};
+    if (ID_Customer) {
+      condition.ID_Customer = ID_Customer;
+    }
+    if (ID_Blog) {
+      condition.ID_Blog = ID_Blog;
+    }
+    if (ID_Tour) {
+      condition.ID_Tour = ID_Tour;
+    }
+    if (parentID) {
+      condition.parentID = parentID;
+    }
+    if (content) {
+      condition.content = content;
+    }
+    if (star) {
+      condition.star = star;
+    }
+    if (status) {
+      condition.status = status;
     }
 
+    const data = await db.Comment.update(condition, {
+      where: {
+        id: id,
+      },
+    });
+
     return {
-      EM: "Lấy comment thành công ",
+      EM: "Cập nhật comment thành công ",
       EC: 0,
-      DT: res,
+      DT: data,
     };
   } catch (error) {
     console.log(">>> error", error);
@@ -169,4 +158,8 @@ const getAllCommentByBlogId = async (rawData) => {
   }
 };
 
-export default { createComment, getAllCommentByBlogId, getAllCommentByBlogId1 };
+export default {
+  updateComment,
+  createComment,
+  getAllCommentByBlogId,
+};
