@@ -115,6 +115,13 @@ const updateCustomer = async (rawData) => {
         DT: [],
       };
     }
+    if (customer.role === "admin") {
+      return {
+        EM: "Tài khoản admin không được cập nhật !!!",
+        EC: -2,
+        DT: [],
+      };
+    }
     const objectUpdate = {};
     if (username) {
       objectUpdate.username = username;
