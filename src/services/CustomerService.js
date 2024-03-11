@@ -103,52 +103,105 @@ const readCustomer = async (rawData) => {
   }
 };
 
-const updateCustomer = async (rawUserData, imageUrl) => {
-  try {
-    let isIdExitst = await checkIdExist(rawUserData.id);
+const updateCustomer = async (rawData) => {
+  const { id, username, address, email, phone, role, status } = rawData;
 
-    if (isIdExitst !== true) {
+  try {
+    let customer = await db.Customer.findByPk(id);
+    if (!customer) {
       return {
-        EM: "Tài khoản (id) không tồn tại !!!",
-        EC: 1,
-        DT: "",
+        EM: "Tài khoản  không tồn tại !!!",
+        EC: -2,
+        DT: [],
       };
     }
-
     const objectUpdate = {};
+    if (username) {
+      objectUpdate.username = username;
+    }
+    if (address) {
+      objectUpdate.address = address;
+    }
+    if (email) {
+      objectUpdate.email = email;
+    }
+    if (phone) {
+      objectUpdate.phone = phone;
+    }
+    if (username) {
+      objectUpdate.username = username;
+    }
+    if (status) {
+      objectUpdate.status = status;
+    }
 
-    imageUrl && (objectUpdate.image = imageUrl);
-    console.log(">> objectUpdate", objectUpdate);
-
-    let updateUserData = await db.Staff.update(
-      {
-        name: rawUserData.name,
-        phone: rawUserData.phone,
-        gender: rawUserData.gender,
-        role: rawUserData.role,
-        email: rawUserData.email,
-        ...objectUpdate,
+    const data = db.Customer.update(objectUpdate, {
+      where: {
+        id: id,
       },
-      {
-        where: {
-          id: rawUserData.id,
-        },
-      }
-    );
+    });
 
     return {
       EM: "Cập nhật tài khoản thành công",
       EC: 0,
-      DT: updateUserData,
+      DT: data,
     };
   } catch (err) {
     console.log(">> loi", err);
     return {
       EM: "Loi server !!!",
-      EC: -2,
-      DT: "",
+      EC: -5,
+      DT: [],
     };
   }
 };
 
-export default { readAllCustomer, updateCustomer, readCustomer };
+const deleteCustomer = async (rawData) => {
+  const { id, table } = rawData;
+
+  try {
+    let exitUser = await db[table].findByPk(+id);
+
+    if (!exitUser) {
+      return {
+        EM: "Tài khoản  không tồn tại !!!",
+        EC: -2,
+        DT: [],
+      };
+    }
+
+    if (exitUser.role == "admin") {
+      return {
+        EM: "Tài khoản admin không được xóa !!!",
+        EC: -2,
+        DT: [],
+      };
+    }
+
+    await db[table].destroy({
+      where: {
+        id: +id,
+      },
+    });
+
+    return {
+      EM: "Xóa tài khoản thành công !!!",
+      EC: 0,
+      DT: [],
+    };
+  } catch (err) {
+    console.log(">> loi", err);
+    return {
+      EM: "Loi server !!!",
+      EC: -5,
+      DT: [],
+    };
+  }
+};
+
+export default {
+  deleteCustomer,
+  readAllCustomer,
+  updateCustomer,
+  readCustomer,
+};

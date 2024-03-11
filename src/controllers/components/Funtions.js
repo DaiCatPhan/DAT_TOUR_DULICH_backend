@@ -3,7 +3,7 @@ import db from "../../app/models";
 const FunDelete = async (req, res) => {
   const { id, table } = req.body;
 
-  console.log(req.body);
+  console.log(req.body); 
 
   if (!id || !table) {
     return res.status(200).json({
