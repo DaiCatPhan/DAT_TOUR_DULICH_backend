@@ -25,15 +25,17 @@ module.exports = (sequelize, DataTypes) => {
   }
   BookingTour.init(
     {
-      idCustomer: DataTypes.INTEGER,
-      idCalendar: DataTypes.INTEGER,
+      ID_Calendar: DataTypes.INTEGER,
+      ID_Customer: DataTypes.INTEGER,
+      ID_Voucher: DataTypes.INTEGER,
 
-      numberTicketAdult: DataTypes.STRING,
-      numberTicketChild: DataTypes.STRING,
+      numberTicketAdult: DataTypes.INTEGER,
+      numberTicketChild: DataTypes.INTEGER,
 
-      total_money: DataTypes.STRING,
+      total_money: DataTypes.INTEGER,
+      remaining_money: DataTypes.INTEGER,
+
       payment_status: DataTypes.STRING,
-      
       admin_approval: DataTypes.DATE,
       status: DataTypes.STRING,
     },

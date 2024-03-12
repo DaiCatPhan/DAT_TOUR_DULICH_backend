@@ -11,17 +11,22 @@ module.exports = {
       },
       ID_Calendar: { type: Sequelize.INTEGER },
       ID_Customer: { type: Sequelize.INTEGER },
+      ID_Voucher: { type: Sequelize.INTEGER },
 
       numberTicketAdult: { type: Sequelize.INTEGER },
       numberTicketChild: { type: Sequelize.INTEGER },
 
-      total_money: { type: Sequelize.INTEGER },
-      payment_status: { type: Sequelize.STRING },
+      total_money: { type: Sequelize.INTEGER }, // tổng tiền phải thanh toán
+      remaining_money: { type: Sequelize.INTEGER }, // số tiền còn lại phải thanh toán
+      payment_status: { type: Sequelize.STRING }, // phương thức thanh toán
 
-      admin_approval: { type: Sequelize.DATE }, // Ngày admin xác nhận đơn đặt tour
-      status: { type: Sequelize.STRING }, //  Chờ xác nhận, Đã xác nhận, Hủy bỏ
+      status: { type: Sequelize.STRING }, // Trạng thái của đơn hàng
 
-      createdAt: { type: Sequelize.DATE }, // Ngày khách hàng đặt tour
+      cancel_booking: { type: Sequelize.STRING },
+      date_cancel_booking: { type: Sequelize.DATE },
+      reason_cancel_booking: { type: Sequelize.STRING }, 
+
+      createdAt: { type: Sequelize.DATE },
       updatedAt: { type: Sequelize.DATE },
     });
   },
