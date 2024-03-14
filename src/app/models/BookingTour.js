@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       // BookingTour.belongsTo(models.Calendar, {
-      //   foreignKey: "idCalendar",
+      //   foreignKey: "ID_Calendar",
       //   targetKey: "id",
       // });
       // BookingTour.belongsTo(models.Customer, {
@@ -33,11 +33,15 @@ module.exports = (sequelize, DataTypes) => {
       numberTicketChild: DataTypes.INTEGER,
 
       total_money: DataTypes.INTEGER,
+      paid_money: DataTypes.INTEGER,
       remaining_money: DataTypes.INTEGER,
-
       payment_status: DataTypes.STRING,
-      admin_approval: DataTypes.DATE,
+
       status: DataTypes.STRING,
+
+      cancel_booking: DataTypes.STRING,
+      date_cancel_booking: DataTypes.DATE,
+      reason_cancel_booking: DataTypes.STRING,
     },
     {
       sequelize,

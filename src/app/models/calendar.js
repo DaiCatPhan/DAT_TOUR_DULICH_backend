@@ -15,7 +15,7 @@ module.exports = (sequelize, DataTypes) => {
       });
 
       Calendar.hasMany(models.BookingTour, {
-        foreignKey: "idCalendar",
+        foreignKey: "ID_Calendar",
         sourceKey: "id",
       });
     }
