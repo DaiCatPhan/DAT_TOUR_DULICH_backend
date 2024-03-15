@@ -7,6 +7,7 @@ const countBookingTourByIdCalendar = async (ID_Calendar) => {
     const calendars = await db.BookingTour.findAll({
       where: {
         ID_Calendar: ID_Calendar,
+        cancel_booking: 0,
       },
       raw: true,
     });
@@ -46,11 +47,9 @@ const prepareTheBill = async (a, b, priceA, priceB) => {
 const applyVoucher = async (totalAmount, voucher) => {
   try {
     const currentDate = new Date();
-    if (
-      currentDate < new Date(voucher.fromDate) ||
-      currentDate > new Date(voucher.toDate)
-    ) {
-      throw new Error("Voucher đã hết hạn");
+
+    if (currentDate > new Date(voucher.toDate)) {
+      return 0; // trường hợp hết hạn sử dụng
     }
 
     let discountAmount = 0;
@@ -74,6 +73,7 @@ const applyVoucher = async (totalAmount, voucher) => {
 
     // Áp dụng giảm giá vào tổng số tiền và trả về số tiền phải thanh toán sau khi áp dụng voucher
     const amountAfterDiscount = totalAmount - discountAmount;
+
     return amountAfterDiscount;
   } catch (error) {
     // Xử lý lỗi nếu có
@@ -92,6 +92,7 @@ const createBooking = async (rawData) => {
     total_money,
     remaining_money,
     payment_status,
+    payment_method,
     status,
     cancel_booking,
     date_cancel_booking,
@@ -121,8 +122,8 @@ const createBooking = async (rawData) => {
     let tongveCon = await remainingSeats(ID_Calendar);
     let tongVeDat = +numberTicketAdult + +numberTicketChild;
 
-    console.log("tongveCon", tongveCon);
-    console.log("tongVeDat", tongVeDat);
+    // console.log("tongveCon", tongveCon);
+    // console.log("tongVeDat", tongVeDat);
 
     if (tongVeDat > tongveCon) {
       return {
@@ -168,9 +169,16 @@ const createBooking = async (rawData) => {
       if (Voucher) {
         // Xử lý logic tính tiền sau khi áp dụng voucher
         soTienPhaiTraSauVoucher = await applyVoucher(soTienPhaiTra, Voucher);
+        if (soTienPhaiTraSauVoucher == 0) {
+          return {
+            EM: "Mã voucher đã hết hạn",
+            EC: -2,
+            DT: [],
+          };
+        }
       } else {
         return {
-          EM: "Mã voucher không hợp lệ",
+          EM: "Mã voucher không tồn tại",
           EC: -2,
           DT: [],
         };
@@ -183,113 +191,26 @@ const createBooking = async (rawData) => {
     let soTienDaThanhToan = 0;
     // Xử lý phương thức thanh toán
     if (payment_method === "online") {
-      // Trường hợp thanh toán online
-      soTienDaThanhToan = total_money; // Số tiền đã thanh toán bằng tổng số tiền phải trả
+      soTienDaThanhToan = soTienPhaiTraSauVoucher;
+      condition.payment_status = "Đã thanh toán";
     } else if (payment_method === "tại quầy") {
-      // Trường hợp thanh toán tại quầy
-      // Trong trường hợp này, giả sử người dùng đã thanh toán một phần nào đó trước đó
-      // Bạn có thể cung cấp một cơ chế nào đó để nhập số tiền đã thanh toán từ quầy vào hệ thống
-      // Ở đây tôi giả định sẽ có một trường hợp thực hiện thanh toán tại quầy trước đó và lưu vào remaining_money
-      // Bạn có thể thay đổi cách xử lý tùy theo nhu cầu thực tế của ứng dụng
       soTienDaThanhToan = 0;
+      condition.payment_status = "Chưa thanh toán";
     }
 
     //========================= Số tiền còn lại phải thanh toán =============================
 
-    const soTienConLaiPhaiThanhToan = soTienPhaiTra - soTienDaThanhToan;
+    const soTienConLaiPhaiThanhToan =
+      soTienPhaiTraSauVoucher - soTienDaThanhToan;
 
     condition.total_money = soTienPhaiTraSauVoucher;
     condition.paid_money = soTienDaThanhToan;
     condition.remaining_money = soTienConLaiPhaiThanhToan;
 
-    console.log("soTienPhaiTra", soTienPhaiTra);
-    console.log("soTienDaThanhToan", soTienDaThanhToan);
-    console.log("soTienConLaiPhaiThanhToan", soTienConLaiPhaiThanhToan);
+    condition.cancel_booking = 0;
 
-    // const data = await db.BookingTour.create(condition);
-
-    return {
-      EM: "Đặt tour thành công ",
-      EC: 0,
-      DT: data,
-    };
-  } catch (error) {
-    console.log(">>> error", error);
-    return {
-      EM: "Loi server !!!",
-      EC: -5,
-      DT: [],
-    };
-  }
-};
-
-const updateBooking = async (rawData) => {
-  const {
-    ID_Calendar,
-    ID_Customer,
-    ID_Voucher,
-    numberTicketAdult,
-    numberTicketChild,
-    total_money,
-    remaining_money,
-    payment_status,
-    status,
-    cancel_booking,
-    date_cancel_booking,
-    reason_cancel_booking,
-  } = rawData;
-
-  try {
-    const Calendar = await db.Calendar.findByPk(ID_Calendar);
-    const Customer = await db.Calendar.findByPk(ID_Customer);
-
-    if (!Customer) {
-      return {
-        EM: "Khách hàng không tồn tại",
-        EC: -2,
-        DT: [],
-      };
-    }
-
-    if (!Calendar) {
-      return {
-        EM: "Lịch tour không tồn tại",
-        EC: -2,
-        DT: [],
-      };
-    }
-
-    // Kiểm tra chỗ ngồi
-    let tongveCon = await remainingSeats(ID_Calendar);
-    let tongVeDat = numberTicketAdult + numberTicketChild;
-
-    if (tongVeDat > tongveCon) {
-      return {
-        EM: "Hết chỗ !!!",
-        EC: 2,
-        DT: [],
-      };
-    }
-
-    const condition = {};
-    if (ID_Calendar) {
-      condition.ID_Calendar = ID_Calendar;
-    }
-    if (ID_Customer) {
-      condition.ID_Customer = ID_Customer;
-    }
-    if (ID_Voucher) {
-      condition.ID_Voucher = ID_Voucher;
-    }
-    if (numberTicketAdult) {
-      condition.numberTicketAdult = numberTicketAdult;
-    }
-    if (numberTicketChild) {
-      condition.numberTicketChild = numberTicketChild;
-    }
-    if (payment_status) {
-      condition.payment_status = payment_status;
-    }
+    condition.payment_method = payment_method;
+    condition.status = "Chờ xác nhận";
 
     const data = await db.BookingTour.create(condition);
 
@@ -308,4 +229,218 @@ const updateBooking = async (rawData) => {
   }
 };
 
-export default { createBooking, updateBooking };
+const updateBooking = async (rawData) => {
+  const {
+    id,
+    ID_Calendar,
+    ID_Customer,
+    ID_Voucher,
+    numberTicketAdult,
+    numberTicketChild,
+    total_money,
+    remaining_money,
+    payment_status,
+    payment_method,
+    status,
+    cancel_booking,
+    date_cancel_booking,
+    reason_cancel_booking,
+  } = rawData;
+
+  try {
+    const bookingTour = await db.BookingTour.findByPk(id);
+
+    if (!bookingTour) {
+      return {
+        EM: "Mã đặc tour không tồn tại",
+        EC: -2,
+        DT: [],
+      };
+    }
+
+    const condition = {};
+    if (status) {
+      condition.status = status;
+    }
+    if (payment_method) {
+      condition.payment_method = payment_method;
+    }
+    if (payment_status) {
+      condition.payment_status = payment_status;
+    }
+    if (remaining_money) {
+      condition.remaining_money = remaining_money;
+    }
+
+    if (cancel_booking) {
+      condition.cancel_booking = cancel_booking;
+    }
+    if (date_cancel_booking) {
+      condition.date_cancel_booking = date_cancel_booking;
+    }
+    if (reason_cancel_booking) {
+      condition.reason_cancel_booking = reason_cancel_booking;
+    }
+
+    const data = await db.BookingTour.update(condition, {
+      where: {
+        id: id,
+      },
+    });
+
+    return {
+      EM: "Cập nhật đặt tour thành công ",
+      EC: 0,
+      DT: data,
+    };
+  } catch (error) {
+    console.log(">>> error", error);
+    return {
+      EM: "Loi server !!!",
+      EC: -5,
+      DT: [],
+    };
+  }
+};
+
+const readBooking = async (rawData) => {
+  try {
+    const { ID_Customer, page, limit } = rawData;
+    let offset = (page - 1) * +limit;
+
+    const customer = await db.Customer.findByPk(ID_Customer);
+    if (!customer) {
+      return {
+        EM: "Tài khoản khách hàng không tồn tại !!!",
+        EC: -2,
+        DT: [],
+      };
+    }
+
+    const condition = {};
+    if (ID_Customer) {
+      condition.ID_Customer = ID_Customer;
+    }
+
+    const data = await db.BookingTour.findAndCountAll({
+      where: condition,
+      order: [["updatedAt", "DESC"]],
+      limit: limit ? parseInt(limit) : undefined,
+      offset: limit && page ? parseInt(offset) : undefined,
+      include: [
+        { model: db.Customer },
+        { model: db.Calendar, include: { model: db.Tour } },
+      ],
+    });
+
+    if (data) {
+      return {
+        EM: "Lấy dữ liệu thành công ",
+        EC: 0,
+        DT: data,
+      };
+    }
+  } catch (err) {
+    console.log(">> loi", err);
+    return {
+      EM: "Loi server !!!",
+      EC: -5,
+      DT: [],
+    };
+  }
+};
+
+const readAllBooking = async (rawData) => {
+  try {
+    const { status, page, limit } = rawData;
+    let offset = (page - 1) * +limit;
+
+    const condition = {};
+    if (status) {
+      condition.status = status;
+    }
+
+    const data = await db.BookingTour.findAndCountAll({
+      where: condition,
+      include: [
+        { model: db.Customer },
+        { model: db.Calendar, include: { model: db.Tour } },
+      ],
+      order: [["updatedAt", "DESC"]],
+      limit: limit ? parseInt(limit) : undefined,
+      offset: limit && page ? parseInt(offset) : undefined,
+    });
+
+    if (data) {
+      return {
+        EM: "Lấy dữ liệu thành công ",
+        EC: 0,
+        DT: data,
+      };
+    }
+  } catch (err) {
+    console.log(">> loi", err);
+    return {
+      EM: "Loi server !!!",
+      EC: -5,
+      DT: [],
+    };
+  }
+};
+
+const createCancelBooking = async (rawData) => {
+  const { id, date_cancel_booking, reason_cancel_booking } = rawData;
+
+  try {
+    const booking = await db.BookingTour.findByPk(id, { raw: true });
+
+    if (!booking) {
+      return {
+        EM: "Tour đặt không tồn tại",
+        EC: -2,
+        DT: [],
+      };
+    }
+
+    const condition = {};
+
+    if (date_cancel_booking) {
+      condition.date_cancel_booking = date_cancel_booking;
+    }
+    if (reason_cancel_booking) {
+      condition.reason_cancel_booking = reason_cancel_booking;
+    }
+
+    condition.cancel_booking = 1;
+    condition.status = "Chờ hủy";
+
+    console.log("condition", condition);
+
+    const data = await db.BookingTour.update(condition, {
+      where: {
+        id: id,
+      },
+    });
+
+    return {
+      EM: "Gửi yêu cầu hủy tour thành công ",
+      EC: 0,
+      DT: data,
+    };
+  } catch (error) {
+    console.log(">>> error", error);
+    return {
+      EM: "Loi server !!!",
+      EC: -5,
+      DT: [],
+    };
+  }
+};
+
+export default {
+  createBooking,
+  updateBooking,
+  readBooking,
+  readAllBooking,
+  createCancelBooking,
+};

@@ -19,6 +19,8 @@ module.exports = {
       total_money: { type: Sequelize.INTEGER }, // tổng tiền phải thanh toán
       paid_money: { type: Sequelize.INTEGER }, // số tiền đã phải thanh toán
       remaining_money: { type: Sequelize.INTEGER }, // số tiền còn lại phải thanh toán
+
+      payment_method: { type: Sequelize.STRING }, // phương thức thanh toán
       payment_status: { type: Sequelize.STRING }, // phương thức thanh toán
 
       status: { type: Sequelize.STRING }, // Trạng thái của đơn hàng

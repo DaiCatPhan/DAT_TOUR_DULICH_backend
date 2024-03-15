@@ -9,18 +9,14 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      // BookingTour.belongsTo(models.Calendar, {
-      //   foreignKey: "ID_Calendar",
-      //   targetKey: "id",
-      // });
-      // BookingTour.belongsTo(models.Customer, {
-      //   foreignKey: "idCustomer",
-      //   targetKey: "id",
-      // });
-      // BookingTour.belongsTo(models.Staff, {
-      //   foreignKey: "idStaff",
-      //   targetKey: "id",
-      // });
+      BookingTour.belongsTo(models.Calendar, {
+        foreignKey: "ID_Calendar",
+        targetKey: "id",
+      });
+      BookingTour.belongsTo(models.Customer, {
+        foreignKey: "ID_Customer",
+        targetKey: "id",
+      });
     }
   }
   BookingTour.init(
@@ -35,7 +31,9 @@ module.exports = (sequelize, DataTypes) => {
       total_money: DataTypes.INTEGER,
       paid_money: DataTypes.INTEGER,
       remaining_money: DataTypes.INTEGER,
+
       payment_status: DataTypes.STRING,
+      payment_method: DataTypes.STRING,
 
       status: DataTypes.STRING,
 
@@ -50,3 +48,4 @@ module.exports = (sequelize, DataTypes) => {
   );
   return BookingTour;
 };
+
