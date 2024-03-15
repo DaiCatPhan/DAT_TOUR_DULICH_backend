@@ -28,7 +28,6 @@ const countBookingTourByIdCalendar = async (ID_Calendar) => {
 // Tính cái số chỗ còn lại của cái lịch đó
 const remainingSeats = async (ID_Calendar) => {
   let countBookingByCalendar = await countBookingTourByIdCalendar(ID_Calendar);
-  console.log("countBookingByCalendar", countBookingByCalendar);
   let calendarDetail = await db.Calendar.findOne({
     where: {
       id: ID_Calendar,
