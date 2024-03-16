@@ -172,15 +172,15 @@ class Auth {
         process.env.REFERSH_TOKEN_SECRET
       );
 
-      // if (!refreshTokenVerify) {
-      //   return res.status(403).json({ message: "Refresh token không hợp lệ." });
-      // }
-
-      // Kím ra user //// Kiểm tra refetch token trong db
+      if (!refreshTokenVerify) {
+        return res.status(403).json({ message: "Refresh token không hợp lệ." });
+      }
 
       const userToken = await db.Customer.findOne({
-        id: refreshTokenVerify.id,
-        refreshToken: refreshTokenVerify.refreshToken,
+        where: {
+          id: refreshTokenVerify?.id,
+        },
+        raw: true,
       });
 
       if (!userToken) {
