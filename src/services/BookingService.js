@@ -304,7 +304,7 @@ const updateBooking = async (rawData) => {
 
 const readBooking = async (rawData) => {
   try {
-    const { ID_Customer, page, limit } = rawData;
+    const { status, ID_Customer, page, limit } = rawData;
     let offset = (page - 1) * +limit;
 
     const customer = await db.Customer.findByPk(ID_Customer);
@@ -319,6 +319,10 @@ const readBooking = async (rawData) => {
     const condition = {};
     if (ID_Customer) {
       condition.ID_Customer = ID_Customer;
+    }
+
+    if (status) {
+      condition.status = status;
     }
 
     const data = await db.BookingTour.findAndCountAll({

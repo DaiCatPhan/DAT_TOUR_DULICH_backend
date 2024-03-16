@@ -256,5 +256,5 @@ export default {
   readAll_Voucher,
   update_Voucher,
   create_VoucherUser,
-  read_VoucherUser,
+  read_VoucherUser, 
 };
