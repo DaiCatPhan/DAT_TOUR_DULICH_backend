@@ -149,7 +149,7 @@ class Booking {
   }
   // [POST] /api/v1/booking/readAll
   async readAll(req, res) {
-    const { status, page, limit } = req.query;
+    const { status, page, limit } = req.query; 
 
     try {
       const data = await BookingService.readAllBooking(req.query);

@@ -374,6 +374,34 @@ const readAllBooking = async (rawData) => {
       offset: limit && page ? parseInt(offset) : undefined,
     });
 
+    const Soluong_ChoXacNhan = await db.BookingTour.findAndCountAll({
+      where: {
+        status: "Chờ xác nhận",
+      },
+    });
+    const Soluong_DaDuyet = await db.BookingTour.findAndCountAll({
+      where: {
+        status: "Đã duyệt",
+      },
+    });
+    const Soluong_ChoHuy = await db.BookingTour.findAndCountAll({
+      where: {
+        status: "Chờ hủy",
+      },
+    });
+    const Soluong_ChoDaHuy = await db.BookingTour.findAndCountAll({
+      where: {
+        status: "Đã hủy",
+      },
+    });
+
+    data.numberStatus = {
+      Soluong_ChoXacNhan: Soluong_ChoXacNhan,
+      Soluong_DaDuyet: Soluong_DaDuyet,
+      Soluong_ChoHuy: Soluong_ChoHuy,
+      Soluong_ChoDaHuy: Soluong_ChoDaHuy,
+    };
+
     if (data) {
       return {
         EM: "Lấy dữ liệu thành công ",
