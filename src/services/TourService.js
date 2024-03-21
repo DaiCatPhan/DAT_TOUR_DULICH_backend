@@ -135,7 +135,7 @@ const UpImageTour = async (rawData) => {
 
 const getTourWithPagination = async (rawData) => {
   const { id, name, page, limit, type, startDay } = rawData;
-  console.log('rawData',rawData);
+  console.log("rawData", rawData);
   try {
     const offset = (page - 1) * limit;
     const whereCondition = {};
@@ -216,6 +216,42 @@ const getTourWithPagination = async (rawData) => {
   }
 };
 
+// Đêm coi cái lịch đó có bao nhiều người đặt rồi ???? thêm điều kiện là != trạng thái đã hủy
+const countBookingTourByIdCalendar = async (ID_Calendar) => {
+  try {
+    const calendars = await db.BookingTour.findAll({
+      where: {
+        ID_Calendar: ID_Calendar,
+        cancel_booking: 0,
+      },
+      raw: true,
+    });
+
+    const conutTicket = calendars.reduce((total, calendar) => {
+      return (
+        total + (+calendar.numberTicketAdult + +calendar.numberTicketChild)
+      );
+    }, 0);
+
+    return +conutTicket;
+  } catch (error) {
+    console.log("error", error);
+    return 0;
+  }
+};
+
+// Tính cái số chỗ còn lại của cái lịch đó
+const remainingSeats = async (ID_Calendar) => {
+  let countBookingByCalendar = await countBookingTourByIdCalendar(ID_Calendar);
+  let calendarDetail = await db.Calendar.findOne({
+    where: {
+      id: ID_Calendar,
+    },
+  });
+
+  return (+calendarDetail?.numberSeat || 0) - countBookingByCalendar || 0;
+};
+
 const getTourDetailById = async (rawData) => {
   const { id } = rawData;
   try {
@@ -250,9 +286,11 @@ const getTourDetailById = async (rawData) => {
 
     dataTour.Calendars = dataTourCalendar;
 
+    console.log("dataTour", dataTour);
+
     if (dataTour) {
       const handleCalendarPromise = dataTour.Calendars.map(async (item) => {
-        const sochoConali = await BookingService.remainingSeats(item.id);
+        const sochoConali = await remainingSeats(item.id);
         return {
           ...item,
           remainingSeats: sochoConali,

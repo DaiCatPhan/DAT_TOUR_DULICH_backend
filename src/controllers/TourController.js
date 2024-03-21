@@ -61,12 +61,12 @@ class Tour {
         });
       }
 
-      const data = await TourService.getTourDetailById(req.query);
+      const data = await TourService.getTourDetailById(req.query); 
 
       res.status(200).json({
         EM: data.EM,
         EC: data.EC,
-        DT: data.DT,
+        DT: data.DT, 
       });
     } catch (err) {
       console.log("err <<< ", err);

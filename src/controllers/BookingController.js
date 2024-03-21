@@ -19,13 +19,9 @@ class Booking {
       reason_cancel_booking,
     } = req.body;
 
-    if (
-      !ID_Calendar ||
-      !ID_Customer ||
-      !numberTicketAdult ||
-      !numberTicketChild ||
-      !payment_method
-    ) {
+    console.log("req.body", req.body);
+
+    if (!ID_Calendar || !ID_Customer || !numberTicketAdult || !payment_method) {
       return res.status(200).json({
         EM: "Nhập thiếu trường dữ liệu !!!",
         EC: -2,
@@ -149,7 +145,7 @@ class Booking {
   }
   // [POST] /api/v1/booking/readAll
   async readAll(req, res) {
-    const { status, page, limit } = req.query; 
+    const { status, page, limit } = req.query;
 
     try {
       const data = await BookingService.readAllBooking(req.query);

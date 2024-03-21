@@ -46,10 +46,10 @@ class Customer {
   // [PUT] /api/v1/customer/update
   async update(req, res) {
     try {
-      const { id, username, address, email, phone, role , status } = req.body;
+      const { id, username, address, email, phone, role, status } = req.body;
 
       // Validate
-      if (!username || !email || !phone || !role) {
+      if ((!id, !username || !email || !phone)) {
         return res.status(200).json({
           EM: "Nhập thiếu dữ liệu !!!",
           EC: -2,
@@ -57,7 +57,7 @@ class Customer {
         });
       }
 
-      const data = await CustomerService.updateCustomer(req.body); 
+      const data = await CustomerService.updateCustomer(req.body);
 
       res.status(200).json({
         EM: data.EM,
