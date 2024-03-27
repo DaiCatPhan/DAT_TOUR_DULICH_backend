@@ -10,6 +10,7 @@ import BlogRouter from "./Blog";
 import CategoryRouter from "./Category";
 import VoucherRouter from "./Voucher";
 import CommentRouter from "./Comment";
+import MessageRouter from "./Message";
 
 function route(app) {
   // authentication
@@ -47,6 +48,9 @@ function route(app) {
 
   // Comment
   app.use("/api/v1/comment", CommentRouter);
+
+   // Message
+   app.use("/api/v1/message", MessageRouter);
 }
 
 export default route;
