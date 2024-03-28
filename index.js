@@ -7,7 +7,8 @@ import route from "./src/routes";
 
 import http from "http";
 import socketIo from "socket.io";
-import { log } from "util";
+
+import MessageService from "./src/services/MessageService";
 
 const app = express();
 const port = 3000;
@@ -44,11 +45,22 @@ route(app);
 io.on("connection", (socket) => {
   console.log(`User Connected: ${socket.id}`);
 
-  socket.on("join_room", (data) => {
-    socket.join(data);
+  socket.on("join_room", async (data) => {
+    const { room } = data;
+    const res = await MessageService.createRoom({ userOne: room });
+    console.log("res >>>>.", res);
+    if (res) {
+      socket.join(room);
+      socket.emit("room_created", res.DT.id);
+    }
   });
 
-  socket.on("send_message", (data) => {
+  socket.on("send_message", async (data) => {
+    const { text, room, ID_User } = data;
+    console.log("datasend ", data);
+    // luu vo database
+    const res = await MessageService.create({ text, ID_Room: room, ID_User });
+    console.log("res >>>>>", res);
     socket.to(data.room).emit("receive_message", data);
   });
 });

@@ -3,17 +3,18 @@ const { Op } = require("sequelize");
 
 const createRoom = async (rawData) => {
   try {
-    const { userOne, userTwo } = rawData;
+    const { userOne } = rawData;
 
     let room = await db.RoomMessage.findOne({
       where: { userOne: userOne },
+      raw: true,
     });
 
     if (room) {
       return {
         EM: "Phòng chát đã được tạo",
         EC: -2,
-        DT: [],
+        DT: room,
       };
     }
 
@@ -21,8 +22,6 @@ const createRoom = async (rawData) => {
       where: { email: "admin@gmail.com" },
       raw: true,
     });
-
-    console.log("userAdminchat ", userAdminChat);
 
     if (!userAdminChat) {
       return {
@@ -32,10 +31,15 @@ const createRoom = async (rawData) => {
       };
     }
 
-    const data = await db.RoomMessage.create({
-      userOne: userOne,
-      userTwo: userAdminChat?.id,
-    });
+    const data = await db.RoomMessage.create(
+      {
+        userOne: userOne,
+        userTwo: userAdminChat?.id,
+      },
+      {
+        raw: true,
+      }
+    );
 
     return {
       EM: "Tạo phòng chát thành công",
@@ -71,10 +75,12 @@ const create = async (rawData) => {
       unRead: "1",
     });
 
+    const dataResult = data.get({ plain: true });
+
     return {
       EM: "Gửi tin nhắn  thành công",
       EC: 0,
-      DT: data,
+      DT: dataResult,
     };
   } catch (error) {
     console.log(">>> error", error);

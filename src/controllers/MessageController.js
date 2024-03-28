@@ -3,9 +3,9 @@ import MessageService from "../services/MessageService";
 class Message {
   // [POST] /api/v1/message/createRoom
   async createRoom(req, res) {
-    const { userOne, userTwo } = req.body;
+    const { userOne } = req.body;
 
-    if (!userOne || !userTwo) {
+    if (!userOne) {
       return res.status(200).json({
         EM: "Nhập thiếu trường dữ liệu !!!",
         EC: -2,
