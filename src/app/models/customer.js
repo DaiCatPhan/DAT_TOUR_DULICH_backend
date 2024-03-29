@@ -21,6 +21,10 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: "id",
         foreignKey: "ID_Customer",
       });
+      Customer.hasMany(models.Message, {
+        sourceKey: "id",
+        foreignKey: "ID_User",
+      });
     }
   }
   Customer.init(

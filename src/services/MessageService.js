@@ -41,10 +41,12 @@ const createRoom = async (rawData) => {
       }
     );
 
+    const dataResult = data.get({ plain: true });
+
     return {
       EM: "Tạo phòng chát thành công",
       EC: 0,
-      DT: data,
+      DT: dataResult,
     };
   } catch (error) {
     console.log(">>> error", error);
@@ -104,6 +106,21 @@ const listRoomOfUser = async (rawData) => {
     for (let i = 0; i < room.length; i++) {
       room[i].messageData = await db.Message.findAll({
         where: { ID_Room: room[i].id },
+        include: [
+          {
+            model: db.Customer,
+            attributes: {
+              exclude: [
+                "password",
+                "refresh_token",
+                "address",
+                "status",
+                "createdAt",
+                "updatedAt",
+              ],
+            },
+          },
+        ],
       });
 
       room[i].userOneData = await db.Customer.findOne({

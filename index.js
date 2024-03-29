@@ -46,6 +46,7 @@ io.on("connection", (socket) => {
   console.log(`User Connected: ${socket.id}`);
 
   socket.on("join_room", async (data) => {
+    console.log("rooom", room);
     const { room } = data;
     const res = await MessageService.createRoom({ userOne: room });
     console.log("res >>>>.", res);
@@ -57,11 +58,13 @@ io.on("connection", (socket) => {
 
   socket.on("send_message", async (data) => {
     const { text, room, ID_User } = data;
-    console.log("datasend ", data);
+
     // luu vo database
     const res = await MessageService.create({ text, ID_Room: room, ID_User });
-    console.log("res >>>>>", res);
-    socket.to(data.room).emit("receive_message", data);
+    console.log("res", res);
+    if (res && res.EC == 0) {
+      socket.emit("receive_message", res.DT);
+    }
   });
 });
 
