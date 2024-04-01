@@ -61,7 +61,6 @@ io.on("connection", (socket) => {
 
     // luu vo database
     const res = await MessageService.create({ text, ID_Room: room, ID_User });
-    console.log("res", res);
     if (res && res.EC == 0) {
       socket.emit("receive_message", res.DT);
     }
@@ -70,4 +69,4 @@ io.on("connection", (socket) => {
 
 server.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
-});
+}); 

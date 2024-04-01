@@ -78,6 +78,7 @@ const create = async (rawData) => {
     });
 
     const dataResult = data.get({ plain: true });
+    dataResult.exitRoom = exitRoom;
 
     return {
       EM: "Gửi tin nhắn  thành công",
