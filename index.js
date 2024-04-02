@@ -46,27 +46,39 @@ io.on("connection", (socket) => {
   console.log(`User Connected: ${socket.id}`);
 
   socket.on("join_room", async (data) => {
-    console.log("rooom", room);
-    const { room } = data;
-    const res = await MessageService.createRoom({ userOne: room });
-    console.log("res >>>>.", res);
+    const { userOne, room } = data;
+    const res = await MessageService.createRoom({ userOne: userOne });
     if (res) {
-      socket.join(room);
+      socket.join(res.DT.id);
+      console.log("tham gia phong chat : ", res.DT.id);
+
       socket.emit("room_created", res.DT.id);
     }
+  });
+
+  socket.on("join_room_admin", async (data) => {
+    const { room } = data;
+
+    socket.join(room);
+    console.log("tham gia phong chat : ", room);
   });
 
   socket.on("send_message", async (data) => {
     const { text, room, ID_User } = data;
 
-    // luu vo database
-    const res = await MessageService.create({ text, ID_Room: room, ID_User });
-    if (res && res.EC == 0) {
-      socket.emit("receive_message", res.DT);
-    }
+    console.log("data >>", data);
+
+    // // luu vo database
+    // const res = await MessageService.create({ text, ID_Room: room, ID_User });
+    // if (res && res.EC == 0) {
+    //   socket.to(res.DT.ID_Room).emit("receive_message", res.DT);
+    // }
+
+    // socket.to(data.room).emit("receive_message", data);
+    socket.broadcast.emit("receive_message", data);
   });
 });
 
 server.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
-}); 
+});
