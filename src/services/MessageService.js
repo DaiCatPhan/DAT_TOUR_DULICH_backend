@@ -62,7 +62,7 @@ const create = async (rawData) => {
   try {
     const { ID_User, ID_Room, unRead, text } = rawData;
 
-    const exitRoom = await db.RoomMessage.findByPk(ID_Room);
+    const exitRoom = await db.RoomMessage.findByPk(ID_Room, { raw: true });
     if (!exitRoom) {
       return {
         EM: "Phòng chát không tồn tại !!!",
