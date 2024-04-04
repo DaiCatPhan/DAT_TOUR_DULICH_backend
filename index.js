@@ -59,12 +59,15 @@ io.on("connection", (socket) => {
     const { room } = data;
 
     socket.join(+room);
+    socket.emit("room_created", room);
     console.log("admin tham gia phong chat : ", room);
   });
 
   socket.on("send_message", async (data) => {
     const { text, room, ID_User } = data;
-    socket.broadcast.emit("receive_message", data);
+    console.log("đata create", data);
+    // socket.broadcast.emit("receive_message", data);
+    socket.to(room).emit("receive_message", data);
   });
 });
 
