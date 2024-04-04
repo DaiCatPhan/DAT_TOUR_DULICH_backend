@@ -59,18 +59,12 @@ io.on("connection", (socket) => {
     const { room } = data;
 
     socket.join(+room);
-    console.log("tham gia phong chat : ", room);
+    console.log("admin tham gia phong chat : ", room);
   });
 
   socket.on("send_message", async (data) => {
     const { text, room, ID_User } = data;
-
-    // // luu vo database
-    const res = await MessageService.create({ text, ID_Room: +room, ID_User });
-    if (res && res.EC === 0) {
-      socket.broadcast.emit("receive_message", res.DT);
-      socket.emit("receive_message", res.DT);
-    }
+    socket.broadcast.emit("receive_message", data);
   });
 });
 
