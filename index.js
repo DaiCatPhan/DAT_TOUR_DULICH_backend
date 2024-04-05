@@ -46,8 +46,8 @@ io.on("connection", (socket) => {
   console.log(`User Connected: ${socket.id}`);
 
   socket.on("join_room", async (data) => {
-    const { userOne, room } = data;
-    const res = await MessageService.createRoom({ userOne: userOne });
+    const { ID_User, room } = data;
+    const res = await MessageService.createRoom({ userOne: ID_User });
     if (res) {
       socket.join(+res.DT.id);
       console.log("tham gia phong chat : ", res.DT.id);
