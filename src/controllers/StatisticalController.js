@@ -19,6 +19,26 @@ class Statistical {
       });
     }
   }
+  // [GET] /api/v1/statistical/revenueTour
+
+  async revenueTour(req, res) {
+    const { startDay, endDay, month, year } = req.query;
+    try {
+      const data = await StatisticalService.revenueTour(req.query);
+      return res.status(200).json({
+        EM: data.EM,
+        EC: data.EC,
+        DT: data.DT,
+      });
+    } catch (err) {
+      console.log("err <<< ", err);
+      return res.status(500).json({
+        EM: "error server",
+        EC: -5,
+        DT: [],
+      });
+    }
+  }
 }
 
 export default new Statistical();

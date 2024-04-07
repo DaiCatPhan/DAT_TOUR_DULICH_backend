@@ -11,6 +11,7 @@ import CategoryRouter from "./Category";
 import VoucherRouter from "./Voucher";
 import CommentRouter from "./Comment";
 import MessageRouter from "./Message";
+import StatisticalRouter from "./Statistical";
 
 function route(app) {
   // authentication
@@ -51,6 +52,8 @@ function route(app) {
 
    // Message
    app.use("/api/v1/message", MessageRouter);
+   // Statistical
+   app.use("/api/v1/statistical", StatisticalRouter);
 }
 
 export default route;
