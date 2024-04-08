@@ -155,7 +155,33 @@ const revenueTour = async (rawData) => {
       });
     }
 
-    console.log("bookings", bookings);
+    if (year) {
+      const startDate = new Date(year, 0, 1);
+      const endDate = new Date(year, 11, 31);
+
+      bookings = await db.BookingTour.findAll({
+        where: {
+          createdAt: {
+            [Op.between]: [startDate, endDate],
+          },
+          // payment_status: "paid",
+        },
+        include: [
+          {
+            model: db.Calendar,
+            include: {
+              model: db.Tour,
+              raw: true,
+              nest: true,
+            },
+            raw: true,
+            nest: true,
+          },
+        ],
+        raw: true,
+        nest: true,
+      });
+    }
 
     // Tính doanh thu theo ngay cho từng tour
     bookings.forEach((booking) => {
@@ -182,27 +208,144 @@ const revenueTour = async (rawData) => {
 };
 
 const revenueTours = async (rawData) => {
-  const { startDay, endDay, month, year } = req.query;
+  const { startDay, endDay, month, year } = rawData;
 
   try {
-    const tour = await db.Tour.count();
-    const user = await db.Customer.count();
-    const donHang = await db.BookingTour.count({
-      where: {
-        status: 0,
-      },
+    const tours = await db.Tour.findAll({
+      attributes: ["id", "name"],
+      raw: true,
     });
 
-    const data = {
-      tour,
-      user,
-      donHang,
-    };
+    var bookings = [];
+
+    if (startDay && !endDay) {
+      const startOfStartDay = new Date(startDay);
+      startOfStartDay.setUTCHours(0, 0, 0, 0);
+
+      const endOfStartDay = new Date(startDay);
+      endOfStartDay.setUTCHours(23, 59, 59, 999);
+
+      bookings = await db.BookingTour.findAll({
+        where: {
+          createdAt: {
+            [Op.between]: [startOfStartDay, endOfStartDay],
+          },
+          // status: "paid",
+        },
+        include: [
+          {
+            model: db.Calendar,
+            include: {
+              model: db.Tour,
+              raw: true,
+              nest: true,
+            },
+            raw: true,
+            nest: true,
+          },
+        ],
+        raw: true,
+        nest: true,
+      });
+    }
+
+    if (startDay && endDay) {
+      bookings = await db.BookingTour.findAll({
+        where: {
+          createdAt: {
+            [Op.between]: [startDay, endDay],
+          },
+          // status: "paid",
+        },
+        include: [
+          {
+            model: db.Calendar,
+            include: {
+              model: db.Tour,
+              raw: true,
+              nest: true,
+            },
+            raw: true,
+            nest: true,
+          },
+        ],
+        raw: true,
+        nest: true,
+      });
+    }
+
+    if (year) {
+      const startDate = new Date(year, 0, 1);
+      const endDate = new Date(year, 11, 31);
+
+      bookings = await db.BookingTour.findAll({
+        where: {
+          createdAt: {
+            [Op.between]: [startDate, endDate],
+          },
+          // payment_status: "paid",
+        },
+        include: [
+          {
+            model: db.Calendar,
+            include: {
+              model: db.Tour,
+              raw: true,
+              nest: true,
+            },
+            raw: true,
+            nest: true,
+          },
+        ],
+        raw: true,
+        nest: true,
+      });
+    }
+
+    if (month) {
+      const [monthofYear, year] = month.split("/");
+      const startDate = new Date(year, monthofYear - 1, 1);
+      const endDate = new Date(year, monthofYear, 0);
+
+      console.log("startDate", startDate);
+      console.log("endDate", endDate);
+      console.log("monthofYear", monthofYear);
+      console.log("year", year);
+
+      bookings = await db.BookingTour.findAll({
+        where: {
+          createdAt: {
+            [Op.between]: [startDate, endDate],
+          },
+          // payment_status: "paid",
+        },
+        include: [
+          {
+            model: db.Calendar,
+            include: {
+              model: db.Tour,
+              raw: true,
+              nest: true,
+            },
+            raw: true,
+            nest: true,
+          },
+        ],
+        raw: true,
+        nest: true,
+      });
+    }
+
+    var revenueDay = 0;
+    // Tính doanh thu theo ngay cho từng tour
+    bookings.forEach((booking) => {
+      revenueDay += booking.total_money;
+    });
 
     return {
       EM: "Lấy dữ liệu thành công",
       EC: 0,
-      DT: data,
+      DT: revenueDay,
     };
   } catch (error) {
     console.log("error");
