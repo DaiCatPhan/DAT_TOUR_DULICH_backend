@@ -72,6 +72,9 @@ const revenueTour = async (rawData) => {
       const endOfStartDay = new Date(startDay);
       endOfStartDay.setUTCHours(23, 59, 59, 999);
 
+      console.log("startOfStartDay", startOfStartDay);
+      console.log("endOfStartDay", endOfStartDay);
+
       bookings = await db.BookingTour.findAll({
         where: {
           createdAt: {
@@ -208,81 +211,21 @@ const revenueTour = async (rawData) => {
 };
 
 const revenueTours = async (rawData) => {
-  const { startDay, endDay, month, year } = rawData;
+  const { year } = rawData;
 
   try {
-    const tours = await db.Tour.findAll({
-      attributes: ["id", "name"],
-      raw: true,
-    });
+    const revenueByMonth = [];
 
-    var bookings = [];
+    for (let month = 1; month <= 12; month++) {
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 0);
 
-    if (startDay && !endDay) {
-      const startOfStartDay = new Date(startDay);
-      startOfStartDay.setUTCHours(0, 0, 0, 0);
-
-      const endOfStartDay = new Date(startDay);
-      endOfStartDay.setUTCHours(23, 59, 59, 999);
-
-      bookings = await db.BookingTour.findAll({
-        where: {
-          createdAt: {
-            [Op.between]: [startOfStartDay, endOfStartDay],
-          },
-          // status: "paid",
-        },
-        include: [
-          {
-            model: db.Calendar,
-            include: {
-              model: db.Tour,
-              raw: true,
-              nest: true,
-            },
-            raw: true,
-            nest: true,
-          },
-        ],
-        raw: true,
-        nest: true,
-      });
-    }
-
-    if (startDay && endDay) {
-      bookings = await db.BookingTour.findAll({
-        where: {
-          createdAt: {
-            [Op.between]: [startDay, endDay],
-          },
-          // status: "paid",
-        },
-        include: [
-          {
-            model: db.Calendar,
-            include: {
-              model: db.Tour,
-              raw: true,
-              nest: true,
-            },
-            raw: true,
-            nest: true,
-          },
-        ],
-        raw: true,
-        nest: true,
-      });
-    }
-
-    if (year) {
-      const startDate = new Date(year, 0, 1);
-      const endDate = new Date(year, 11, 31);
-
-      bookings = await db.BookingTour.findAll({
+      const bookings = await db.BookingTour.findAll({
         where: {
           createdAt: {
             [Op.between]: [startDate, endDate],
           },
+          // Nếu muốn chỉ lấy các booking đã thanh toán, hãy bật dòng dưới đây.
           // payment_status: "paid",
         },
         include: [
@@ -300,52 +243,19 @@ const revenueTours = async (rawData) => {
         raw: true,
         nest: true,
       });
-    }
 
-    if (month) {
-      const [monthofYear, year] = month.split("/");
-      const startDate = new Date(year, monthofYear - 1, 1);
-      const endDate = new Date(year, monthofYear, 0);
-
-      console.log("startDate", startDate);
-      console.log("endDate", endDate);
-      console.log("monthofYear", monthofYear);
-      console.log("year", year);
-
-      bookings = await db.BookingTour.findAll({
-        where: {
-          createdAt: {
-            [Op.between]: [startDate, endDate],
-          },
-          // payment_status: "paid",
-        },
-        include: [
-          {
-            model: db.Calendar,
-            include: {
-              model: db.Tour,
-              raw: true,
-              nest: true,
-            },
-            raw: true,
-            nest: true,
-          },
-        ],
-        raw: true,
-        nest: true,
+      // Tính tổng doanh thu từ các booking của tháng hiện tại
+      let monthlyRevenue = 0;
+      bookings.forEach((booking) => {
+        monthlyRevenue += booking.total_money;
       });
+
+      revenueByMonth.push(monthlyRevenue);
     }
-
-    var revenueDay = 0;
-    // Tính doanh thu theo ngay cho từng tour
-    bookings.forEach((booking) => {
-      revenueDay += booking.total_money;
-    });
-
     return {
-      EM: "Lấy dữ liệu thành công",
+      EM: "ok",
       EC: 0,
-      DT: revenueDay,
+      DT: revenueByMonth,
     };
   } catch (error) {
     console.log("error");
