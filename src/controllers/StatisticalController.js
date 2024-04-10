@@ -85,3 +85,4 @@ class Statistical {
 }
 
 export default new Statistical();
+

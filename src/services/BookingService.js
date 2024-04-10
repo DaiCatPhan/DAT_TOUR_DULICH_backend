@@ -189,12 +189,12 @@ const createBooking = async (rawData) => {
     // Số tiền đã thanh toán
     let soTienDaThanhToan = 0;
     // Xử lý phương thức thanh toán
-    if (payment_method === "online") {
+    if (payment_method === "ONLINE") {
       soTienDaThanhToan = soTienPhaiTraSauVoucher;
-      condition.payment_status = "Đã thanh toán";
-    } else if (payment_method === "tại quầy") {
+      condition.payment_status = "ĐÃ THANH TOÁN";
+    } else if (payment_method === "TẠI QUẦY") {
       soTienDaThanhToan = 0;
-      condition.payment_status = "Chưa thanh toán";
+      condition.payment_status = "CHƯA THANH TOÁN";
     }
 
     //========================= Số tiền còn lại phải thanh toán =============================
@@ -209,7 +209,7 @@ const createBooking = async (rawData) => {
     condition.cancel_booking = 0;
 
     condition.payment_method = payment_method;
-    condition.status = "Chờ xác nhận";
+    condition.status = "CHỜ XÁC NHẬN";
 
     const data = await db.BookingTour.create(condition);
 

@@ -1,5 +1,7 @@
 import db from "../app/models";
 import { Op } from "sequelize";
+import moment from "moment";
+import { format } from "sequelize/lib/utils";
 
 const dashboard = async () => {
   try {
@@ -72,15 +74,12 @@ const revenueTour = async (rawData) => {
       const endOfStartDay = new Date(startDay);
       endOfStartDay.setUTCHours(23, 59, 59, 999);
 
-      console.log("startOfStartDay", startOfStartDay);
-      console.log("endOfStartDay", endOfStartDay);
-
       bookings = await db.BookingTour.findAll({
         where: {
           createdAt: {
             [Op.between]: [startOfStartDay, endOfStartDay],
           },
-          // status: "paid",
+          status: "ĐÃ DUYỆT",
         },
         include: [
           {
@@ -105,7 +104,7 @@ const revenueTour = async (rawData) => {
           createdAt: {
             [Op.between]: [startDay, endDay],
           },
-          // status: "paid",
+          status: "ĐÃ DUYỆT",
         },
         include: [
           {
@@ -129,17 +128,12 @@ const revenueTour = async (rawData) => {
       const startDate = new Date(year, monthofYear - 1, 1);
       const endDate = new Date(year, monthofYear, 0);
 
-      console.log("startDate", startDate);
-      console.log("endDate", endDate);
-      console.log("monthofYear", monthofYear);
-      console.log("year", year);
-
       bookings = await db.BookingTour.findAll({
         where: {
           createdAt: {
             [Op.between]: [startDate, endDate],
           },
-          // payment_status: "paid",
+          status: "ĐÃ DUYỆT",
         },
         include: [
           {
@@ -167,7 +161,7 @@ const revenueTour = async (rawData) => {
           createdAt: {
             [Op.between]: [startDate, endDate],
           },
-          // payment_status: "paid",
+          status: "ĐÃ DUYỆT",
         },
         include: [
           {
@@ -195,11 +189,38 @@ const revenueTour = async (rawData) => {
       }
     });
 
-    return {
-      EM: "Lấy dữ liệu thành công",
-      EC: 0,
-      DT: tours,
-    };
+    if (startDay && !endDay) {
+      return {
+        EM: `Doanh thu từng tour ở ngày : ${moment(startDay).format(
+          "DD-MM-YYYY"
+        )}`,
+        EC: 0,
+        DT: tours,
+      };
+    }
+    if (startDay && endDay) {
+      return {
+        EM: `Doanh thu từng tour bắt đầu từ ngày :  ${moment(startDay).format(
+          "DD-MM-YYYY"
+        )} - ${moment(endDay).format("DD-MM-YYYY")}`,
+        EC: 0,
+        DT: tours,
+      };
+    }
+    if (month) {
+      return {
+        EM: "Doanh thu từng tour ở tháng : " + month,
+        EC: 0,
+        DT: tours,
+      };
+    }
+    if (year) {
+      return {
+        EM: "Doanh thu từng tour ở năm : " + year,
+        EC: 0,
+        DT: tours,
+      };
+    }
   } catch (error) {
     console.log("error", error);
     return {
@@ -225,8 +246,7 @@ const revenueToursMonth = async (rawData) => {
           createdAt: {
             [Op.between]: [startDate, endDate],
           },
-          // Nếu muốn chỉ lấy các booking đã thanh toán, hãy bật dòng dưới đây.
-          // payment_status: "paid",
+          status: "ĐÃ DUYỆT",
         },
         include: [
           {
@@ -250,7 +270,7 @@ const revenueToursMonth = async (rawData) => {
         monthlyRevenue += booking.total_money;
       });
 
-      revenueByMonth.push(monthlyRevenue);
+      revenueByMonth.push({ month: `Tháng ${month}`, value: monthlyRevenue });
     }
     return {
       EM: `Doanh thu tất cả các tháng năm ${year}`,
@@ -270,8 +290,6 @@ const revenueToursMonth = async (rawData) => {
 const revenueToursOneYear = async (rawData) => {
   const { year } = rawData;
 
-  console.log("year", year);
-
   const startDate = new Date(year, 0, 1);
   const endDate = new Date(year, 11, 31);
 
@@ -280,8 +298,7 @@ const revenueToursOneYear = async (rawData) => {
       createdAt: {
         [Op.between]: [startDate, endDate],
       },
-      // Nếu muốn chỉ lấy các booking đã thanh toán, hãy bật dòng dưới đây.
-      // payment_status: "paid",
+      status: "ĐÃ DUYỆT",
     },
     include: [
       {
@@ -313,18 +330,16 @@ const calculateRevenueForRecentYears = async (rawData) => {
   let currentYear = new Date(year).getFullYear();
   let recentYears = [];
 
-  console.log("currentYear", currentYear);
-
   // Lặp qua 5 năm gần nhất, bắt đầu từ năm hiện tại
   for (let i = 0; i < 5; i++) {
     const year = currentYear - i;
     const revenue = await revenueToursOneYear({ year });
-    console.log("revenue", revenue);
-    recentYears.push({ year, revenue });
-  }
 
+    recentYears.push({ year, value: revenue });
+  }
+  recentYears.reverse();
   return {
-    EM: "Lấy dữ liệu thành công",
+    EM: `Biểu đồ doanh thu từng năm : ${year - 4} - ${year}`,
     EC: 0,
     DT: recentYears,
   };
