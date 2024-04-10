@@ -210,7 +210,7 @@ const revenueTour = async (rawData) => {
   }
 };
 
-const revenueTours = async (rawData) => {
+const revenueToursMonth = async (rawData) => {
   const { year } = rawData;
 
   try {
@@ -253,7 +253,7 @@ const revenueTours = async (rawData) => {
       revenueByMonth.push(monthlyRevenue);
     }
     return {
-      EM: "ok",
+      EM: `Doanh thu tất cả các tháng năm ${year}`,
       EC: 0,
       DT: revenueByMonth,
     };
@@ -266,4 +266,73 @@ const revenueTours = async (rawData) => {
     };
   }
 };
-export default { dashboard, revenueTour, revenueTours };
+
+const revenueToursOneYear = async (rawData) => {
+  const { year } = rawData;
+
+  console.log("year", year);
+
+  const startDate = new Date(year, 0, 1);
+  const endDate = new Date(year, 11, 31);
+
+  const bookings = await db.BookingTour.findAll({
+    where: {
+      createdAt: {
+        [Op.between]: [startDate, endDate],
+      },
+      // Nếu muốn chỉ lấy các booking đã thanh toán, hãy bật dòng dưới đây.
+      // payment_status: "paid",
+    },
+    include: [
+      {
+        model: db.Calendar,
+        include: {
+          model: db.Tour,
+          raw: true,
+          nest: true,
+        },
+        raw: true,
+        nest: true,
+      },
+    ],
+    raw: true,
+    nest: true,
+  });
+
+  // Tính tổng doanh thu từ các booking của tháng hiện tại
+  let totalRevenueYear = 0;
+  bookings.forEach((booking) => {
+    totalRevenueYear += booking.total_money;
+  });
+
+  return totalRevenueYear;
+};
+
+const calculateRevenueForRecentYears = async (rawData) => {
+  const { year } = rawData;
+  let currentYear = new Date(year).getFullYear();
+  let recentYears = [];
+
+  console.log("currentYear", currentYear);
+
+  // Lặp qua 5 năm gần nhất, bắt đầu từ năm hiện tại
+  for (let i = 0; i < 5; i++) {
+    const year = currentYear - i;
+    const revenue = await revenueToursOneYear({ year });
+    console.log("revenue", revenue);
+    recentYears.push({ year, revenue });
+  }
+
+  return {
+    EM: "Lấy dữ liệu thành công",
+    EC: 0,
+    DT: recentYears,
+  };
+};
+
+export default {
+  dashboard,
+  revenueTour,
+  revenueToursMonth,
+  calculateRevenueForRecentYears,
+};

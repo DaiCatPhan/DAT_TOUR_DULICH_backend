@@ -4,6 +4,7 @@ import StatisticalController from "../controllers/StatisticalController";
 
 router.get("/dashboard", StatisticalController.dashboard); 
 router.get("/revenueTour", StatisticalController.revenueTour); 
-router.get("/revenueTours", StatisticalController.revenueTours); 
+router.get("/revenueToursMonth", StatisticalController.revenueToursMonth); 
+router.get("/revenueToursYear", StatisticalController.revenueToursYear); 
 
 export default router;
