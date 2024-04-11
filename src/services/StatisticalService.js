@@ -34,24 +34,6 @@ const dashboard = async () => {
   }
 };
 
-function isSameDate(date1, date2) {
-  return (
-    date1.getFullYear() === date2.getFullYear() &&
-    date1.getMonth() === date2.getMonth() &&
-    date1.getDate() === date2.getDate()
-  );
-}
-
-function isSameMongth(date1, date2) {
-  return (
-    date1.getMonth() === date2.getMonth() && date1.getDate() === date2.getDate()
-  );
-}
-
-function isSameYear(date1, date2) {
-  return date1.getDate() === date2.getDate();
-}
-
 const revenueTour = async (rawData) => {
   const { startDay, endDay, month, year } = rawData;
 
@@ -81,6 +63,7 @@ const revenueTour = async (rawData) => {
           },
           status: "ĐÃ DUYỆT",
         },
+        order: [["total_money", "DESC"]],
         include: [
           {
             model: db.Calendar,
@@ -188,6 +171,8 @@ const revenueTour = async (rawData) => {
         tour.revenueDay += booking.total_money;
       }
     });
+    // Sắp xếp mảng tours theo trường revenueDay từ cao đến thấp
+    tours?.sort((a, b) => b.revenueDay - a.revenueDay);
 
     if (startDay && !endDay) {
       return {
@@ -345,9 +330,189 @@ const calculateRevenueForRecentYears = async (rawData) => {
   };
 };
 
+const revenueToursCancel = async (rawData) => {
+  const { startDay, endDay, month, year } = rawData;
+
+  try {
+    let bookings = [];
+
+    if (startDay && !endDay) {
+      const startOfStartDay = new Date(startDay);
+      startOfStartDay.setUTCHours(0, 0, 0, 0);
+
+      const endOfStartDay = new Date(startDay);
+      endOfStartDay.setUTCHours(23, 59, 59, 999);
+
+      bookings = await db.BookingTour.findAndCountAll({
+        where: {
+          createdAt: {
+            [Op.between]: [startOfStartDay, endOfStartDay],
+          },
+          status: "ĐÃ HỦY",
+        },
+        include: [
+          {
+            model: db.Calendar,
+            include: {
+              model: db.Tour,
+              raw: true,
+              nest: true,
+            },
+            raw: true,
+            nest: true,
+          },
+          {
+            model: db.Customer,
+            attributes: ["id", "username"],
+          },
+        ],
+        raw: true,
+        nest: true,
+      });
+    }
+
+    if (startDay && endDay) {
+      bookings = await db.BookingTour.findAndCountAll({
+        where: {
+          createdAt: {
+            [Op.between]: [startDay, endDay],
+          },
+          status: "ĐÃ HỦY",
+        },
+        include: [
+          {
+            model: db.Calendar,
+            include: {
+              model: db.Tour,
+              raw: true,
+              nest: true,
+            },
+            raw: true,
+            nest: true,
+          },
+          {
+            model: db.Customer,
+            attributes: ["id", "username"],
+          },
+        ],
+        raw: true,
+        nest: true,
+      });
+    }
+
+    if (month) {
+      const [monthofYear, year] = month.split("/");
+      const startDate = new Date(year, monthofYear - 1, 1);
+      const endDate = new Date(year, monthofYear, 0);
+
+      bookings = await db.BookingTour.findAndCountAll({
+        where: {
+          createdAt: {
+            [Op.between]: [startDate, endDate],
+          },
+          status: "ĐÃ HỦY",
+        },
+        include: [
+          {
+            model: db.Calendar,
+            include: {
+              model: db.Tour,
+              raw: true,
+              nest: true,
+            },
+            raw: true,
+            nest: true,
+          },
+          {
+            model: db.Customer,
+            attributes: ["id", "username"],
+          },
+        ],
+        raw: true,
+        nest: true,
+      });
+    }
+
+    if (year) {
+      const startDate = new Date(year, 0, 1);
+      const endDate = new Date(year, 11, 31);
+
+      bookings = await db.BookingTour.findAndCountAll({
+        where: {
+          createdAt: {
+            [Op.between]: [startDate, endDate],
+          },
+          status: "ĐÃ HỦY",
+        },
+        include: [
+          {
+            model: db.Calendar,
+            include: {
+              model: db.Tour,
+              raw: true,
+              nest: true,
+            },
+            raw: true,
+            nest: true,
+          },
+          {
+            model: db.Customer,
+            attributes: ["id", "username"],
+          },
+        ],
+        raw: true,
+        nest: true,
+      });
+    }
+
+    if (startDay && !endDay) {
+      return {
+        EM: `Tổng đơn bị hủy  ngày ${moment(startDay).format("DD-MM-YYYY")} : ${
+          bookings.count
+        } đơn`,
+        EC: 0,
+        DT: bookings.rows,
+      };
+    }
+    if (startDay && endDay) {
+      return {
+        EM: `Tổng đơn bị hủy ngày ${moment(startDay).format(
+          "DD-MM-YYYY"
+        )} đến ngày ${moment(endDay).format("DD-MM-YYYY")} : ${
+          bookings.count
+        } đơn`,
+        EC: 0,
+        DT: bookings.rows,
+      };
+    }
+    if (month) {
+      return {
+        EM: "Tổng đơn bị hủy tháng" + month + `: ${bookings.count} đơn`,
+        EC: 0,
+        DT: bookings.rows,
+      };
+    }
+    if (year) {
+      return {
+        EM: "Tổng đơn bị hủy  năm " + year + `: ${bookings.count} đơn`,
+        EC: 0,
+        DT: bookings.rows,
+      };
+    }
+  } catch (error) {
+    console.log("error", error);
+    return {
+      EM: "Loi server",
+      EC: -5,
+      DT: [],
+    };
+  }
+};
+
 export default {
   dashboard,
   revenueTour,
   revenueToursMonth,
   calculateRevenueForRecentYears,
+  revenueToursCancel,
 };
