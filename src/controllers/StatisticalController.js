@@ -83,12 +83,33 @@ class Statistical {
     }
   }
 
-   // [GET] /api/v1/statistical/revenueToursCancel
+  // [GET] /api/v1/statistical/revenueToursCancel
 
-   async revenueToursCancel(req, res) {
+  async revenueToursCancel(req, res) {
     const { startDay, endDay, month, year, sort } = req.query;
-    try { 
-      const data = await StatisticalService.revenueToursCancel(req.query); 
+    try {
+      const data = await StatisticalService.revenueToursCancel(req.query);
+      return res.status(200).json({
+        EM: data.EM,
+        EC: data.EC,
+        DT: data.DT,
+      });
+    } catch (err) {
+      console.log("err <<< ", err);
+      return res.status(500).json({
+        EM: "error server",
+        EC: -5,
+        DT: [],
+      });
+    }
+  }
+
+  // [GET] /api/v1/statistical/revenueToursCancelMonth
+
+  async revenueToursCancelMonth(req, res) {
+    const { startDay, endDay, month, year, sort } = req.query;
+    try {
+      const data = await StatisticalService.revenueToursCancelMonth(req.query);
       return res.status(200).json({
         EM: data.EM,
         EC: data.EC,
@@ -106,4 +127,3 @@ class Statistical {
 }
 
 export default new Statistical();
-

@@ -7,5 +7,6 @@ router.get("/revenueTour", StatisticalController.revenueTour);
 router.get("/revenueToursMonth", StatisticalController.revenueToursMonth); 
 router.get("/revenueToursYear", StatisticalController.revenueToursYear); 
 router.get("/revenueToursCancel", StatisticalController.revenueToursCancel); 
+router.get("/revenueToursCancelMonth", StatisticalController.revenueToursCancelMonth); 
 
 export default router;

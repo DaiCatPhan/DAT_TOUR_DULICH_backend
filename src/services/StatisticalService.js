@@ -509,10 +509,71 @@ const revenueToursCancel = async (rawData) => {
   }
 };
 
+const revenueToursCancelMonth = async (rawData) => {
+  const { year } = rawData;
+
+  try {
+    const revenueByMonth = [];
+
+    for (let month = 1; month <= 12; month++) {
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 0);
+
+      const bookings = await db.BookingTour.findAll({
+        where: {
+          createdAt: {
+            [Op.between]: [startDate, endDate],
+          },
+          status: "ĐÃ HỦY",
+        },
+        include: [
+          {
+            model: db.Calendar,
+            include: {
+              model: db.Tour,
+              raw: true,
+              nest: true,
+            },
+            raw: true,
+            nest: true,
+          },
+        ],
+        raw: true,
+        nest: true,
+      });
+
+      // Tính tổng doanh thu từ các booking của tháng hiện tại
+      let monthlyRevenue = 0;
+      bookings.forEach((booking) => {
+        monthlyRevenue += 1;
+      });
+
+      revenueByMonth.push({
+        month: `Tháng ${month}`,
+        numberTourCancel: monthlyRevenue,
+        bookings: bookings,
+      });
+    }
+    return {
+      EM: `Doanh thu tất cả các tháng năm ${year}`,
+      EC: 0,
+      DT: revenueByMonth,
+    };
+  } catch (error) {
+    console.log("error");
+    return {
+      EM: "Loi server",
+      EC: -5,
+      DT: [],
+    };
+  }
+};
+
 export default {
   dashboard,
   revenueTour,
   revenueToursMonth,
   calculateRevenueForRecentYears,
   revenueToursCancel,
+  revenueToursCancelMonth,
 };
