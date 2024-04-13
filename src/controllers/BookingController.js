@@ -1,4 +1,6 @@
 import BookingService from "../services/BookingService";
+let config = require("config");
+import moment from "moment";
 
 class Booking {
   // [POST] /api/v1/booking/create
@@ -9,19 +11,14 @@ class Booking {
       ID_Voucher,
       numberTicketAdult,
       numberTicketChild,
-      total_money,
-      remaining_money,
-      payment_status,
-      payment_method,
-      status,
-      cancel_booking,
-      date_cancel_booking,
-      reason_cancel_booking,
     } = req.body;
 
-    console.log("req.body", req.body);
-
-    if (!ID_Calendar || !ID_Customer || !numberTicketAdult || !payment_method) {
+    if (
+      !ID_Calendar ||
+      !ID_Customer ||
+      !numberTicketAdult ||
+      !numberTicketChild
+    ) {
       return res.status(200).json({
         EM: "Nhập thiếu trường dữ liệu !!!",
         EC: -2,
@@ -163,6 +160,122 @@ class Booking {
       });
     }
   }
+
+  // [POST] /api/v1/booking/create
+  async createVNPAY(req, res, next) {
+    const {
+      ID_Calendar,
+      ID_Customer,
+      ID_Voucher,
+      numberTicketAdult,
+      numberTicketChild,
+    } = req.body;
+
+    if (
+      !ID_Calendar ||
+      !ID_Customer ||
+      !numberTicketAdult ||
+      !numberTicketChild
+    ) {
+      return res.status(200).json({
+        EM: "Nhập thiếu trường dữ liệu !!!",
+        EC: -2,
+        DT: [],
+      });
+    }
+
+    try {
+      const data = await BookingService.createBookingVNPAY(req.body);
+      req.dataBooking = data;
+      next();
+    } catch (err) {
+      console.log("err <<< ", err);
+      return res.status(500).json({
+        EM: "error server",
+        EC: -5,
+        DT: [],
+      });
+    }
+  }
+
+  async handleCreatePaymentVnpayUrl(req, res) {
+    const dataBooking = req.dataBooking;
+
+    try {
+      const data = dataBooking.DT;
+      let date = new Date();
+      let createDate = moment(date).format("yyyyMMDDHHmmss");
+
+      let ipAddr =
+        req.headers["x-forwarded-for"] ||
+        req.connection.remoteAddress ||
+        req.socket.remoteAddress ||
+        req.connection.socket.remoteAddress;
+
+      let tmnCode = config.get("vnp_TmnCode");
+      let secretKey = config.get("vnp_HashSecret");
+      let vnpUrl = config.get("vnp_Url");
+      let returnUrl = config.get("vnp_ReturnUrl");
+      let orderId = moment(date).format("DDHHmmss");
+
+      let locale = "vn";
+      let currCode = "VND";
+      let vnp_Params = {};
+      vnp_Params["vnp_Version"] = "2.1.0";
+      vnp_Params["vnp_Command"] = "pay";
+      vnp_Params["vnp_TmnCode"] = tmnCode;
+      vnp_Params["vnp_Locale"] = locale;
+      vnp_Params["vnp_CurrCode"] = currCode;
+      vnp_Params["vnp_TxnRef"] = data.id;
+      vnp_Params["vnp_OrderInfo"] = "Thanh toan cho ma GD:" + data.id;
+      vnp_Params["vnp_OrderType"] = "Thanh toan VNPAY";
+      vnp_Params["vnp_Amount"] = data.total_money * 100;
+      vnp_Params["vnp_ReturnUrl"] = returnUrl;
+      vnp_Params["vnp_IpAddr"] = ipAddr;
+      vnp_Params["vnp_CreateDate"] = createDate;
+
+      vnp_Params = sortObject(vnp_Params);
+
+      let querystring = require("qs");
+      let signData = querystring.stringify(vnp_Params, { encode: false });
+      let crypto = require("crypto");
+      let hmac = crypto.createHmac("sha512", secretKey);
+      let signed = hmac.update(new Buffer(signData, "utf-8")).digest("hex");
+      vnp_Params["vnp_SecureHash"] = signed;
+      vnpUrl += "?" + querystring.stringify(vnp_Params, { encode: false });
+
+      return res.status(200).json({
+        statusCode: 200,
+        msg: "Đã tạo thanh toán",
+        data: {
+          url: vnpUrl,
+        },
+      });
+    } catch (error) {
+      console.log(">>> error", error);
+      return {
+        EM: "Loi server !!!",
+        EC: -5,
+        DT: [],
+      };
+    }
+  }
+}
+
+function sortObject(obj) {
+  let sorted = {};
+  let str = [];
+  let key;
+  for (key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      str.push(encodeURIComponent(key));
+    }
+  }
+  str.sort();
+  for (key = 0; key < str.length; key++) {
+    sorted[str[key]] = encodeURIComponent(obj[str[key]]).replace(/%20/g, "+");
+  }
+  return sorted;
 }
 
 export default new Booking();

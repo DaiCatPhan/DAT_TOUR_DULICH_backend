@@ -81,153 +81,6 @@ const applyVoucher = async (totalAmount, voucher) => {
   }
 };
 
-const createBooking = async (rawData) => {
-  const {
-    ID_Calendar,
-    ID_Customer,
-    ID_Voucher,
-    numberTicketAdult,
-    numberTicketChild,
-    total_money,
-    remaining_money,
-    payment_status,
-    payment_method,
-    status,
-    cancel_booking,
-    date_cancel_booking,
-    reason_cancel_booking,
-  } = rawData;
-
-  try {
-    const Calendar = await db.Calendar.findByPk(ID_Calendar, { raw: true });
-    const Customer = await db.Calendar.findByPk(ID_Customer, { raw: true });
-
-    if (!Customer) {
-      return {
-        EM: "Khách hàng không tồn tại",
-        EC: -2,
-        DT: [],
-      };
-    }
-
-    if (!Calendar) {
-      return {
-        EM: "Lịch tour không tồn tại",
-        EC: -2,
-        DT: [],
-      };
-    }
-
-    let tongveCon = await remainingSeats(ID_Calendar);
-    let tongVeDat = +numberTicketAdult + +numberTicketChild;
-
-    // console.log("tongveCon", tongveCon);
-    // console.log("tongVeDat", tongVeDat);
-
-    if (tongVeDat > tongveCon) {
-      return {
-        EM: "Hết chỗ !!!",
-        EC: -2,
-        DT: [],
-      };
-    }
-
-    const condition = {};
-    if (ID_Calendar) {
-      condition.ID_Calendar = ID_Calendar;
-    }
-    if (ID_Customer) {
-      condition.ID_Customer = ID_Customer;
-    }
-    if (ID_Voucher) {
-      condition.ID_Voucher = ID_Voucher;
-    }
-    if (numberTicketAdult) {
-      condition.numberTicketAdult = numberTicketAdult;
-    }
-    if (numberTicketChild) {
-      condition.numberTicketChild = numberTicketChild;
-    }
-    if (payment_status) {
-      condition.payment_status = payment_status;
-    }
-
-    //========================= Số tiền phải trả =============================
-
-    const soTienPhaiTra = await prepareTheBill(
-      numberTicketChild,
-      numberTicketAdult,
-      Calendar?.priceChild,
-      Calendar?.priceAdult
-    );
-
-    // Kiểm tra và tính tiền theo voucher nếu có
-    let soTienPhaiTraSauVoucher = soTienPhaiTra;
-    if (ID_Voucher) {
-      const Voucher = await db.Voucher.findByPk(ID_Voucher, { raw: true });
-      if (Voucher) {
-        // Xử lý logic tính tiền sau khi áp dụng voucher
-        soTienPhaiTraSauVoucher = await applyVoucher(soTienPhaiTra, Voucher);
-        if (soTienPhaiTraSauVoucher == 0) {
-          return {
-            EM: "Mã voucher đã hết hạn",
-            EC: -2,
-            DT: [],
-          };
-        }
-      } else {
-        return {
-          EM: "Mã voucher không tồn tại",
-          EC: -2,
-          DT: [],
-        };
-      }
-    }
-
-    //========================= Số tiền đã thanh toán =============================
-
-    // Số tiền đã thanh toán
-    let soTienDaThanhToan = 0;
-    // Xử lý phương thức thanh toán
-    if (payment_method === "ONLINE") {
-      soTienDaThanhToan = soTienPhaiTraSauVoucher;
-      condition.payment_status = "ĐÃ THANH TOÁN";
-    } else if (payment_method === "TẠI QUẦY") {
-      soTienDaThanhToan = 0;
-      condition.payment_status = "CHƯA THANH TOÁN";
-    }
-
-    //========================= Số tiền còn lại phải thanh toán =============================
-
-    const soTienConLaiPhaiThanhToan =
-      soTienPhaiTraSauVoucher - soTienDaThanhToan;
-
-    condition.total_money = soTienPhaiTraSauVoucher;
-    condition.paid_money = soTienDaThanhToan;
-    condition.remaining_money = soTienConLaiPhaiThanhToan;
-
-    condition.cancel_booking = 0;
-
-    condition.payment_method = payment_method;
-    condition.status = "CHỜ XÁC NHẬN";
-
-    const data = await db.BookingTour.create(condition);
-
-    return {
-      EM: "Đặt tour thành công ",
-      EC: 0,
-      DT: data,
-    };
-  } catch (error) {
-    console.log(">>> error", error);
-    return {
-      EM: "Loi server !!!",
-      EC: -5,
-      DT: [],
-    };
-  }
-};
-
 const updateBooking = async (rawData) => {
   const {
     id,
@@ -468,10 +321,240 @@ const createCancelBooking = async (rawData) => {
   }
 };
 
+const createBooking = async (rawData) => {
+  const {
+    ID_Calendar,
+    ID_Customer,
+    ID_Voucher,
+    numberTicketAdult,
+    numberTicketChild,
+  } = rawData;
+
+  try {
+    const Calendar = await db.Calendar.findByPk(ID_Calendar, { raw: true });
+    const Customer = await db.Calendar.findByPk(ID_Customer, { raw: true });
+
+    if (!Customer) {
+      return {
+        EM: "Khách hàng không tồn tại",
+        EC: -2,
+        DT: [],
+      };
+    }
+
+    if (!Calendar) {
+      return {
+        EM: "Lịch tour không tồn tại",
+        EC: -2,
+        DT: [],
+      };
+    }
+
+    let tongveCon = await remainingSeats(ID_Calendar);
+    let tongVeDat = +numberTicketAdult + +numberTicketChild;
+
+    if (tongVeDat > tongveCon) {
+      return {
+        EM: "Hết chỗ !!!",
+        EC: -2,
+        DT: [],
+      };
+    }
+
+    const condition = {};
+    if (ID_Calendar) {
+      condition.ID_Calendar = ID_Calendar;
+    }
+    if (ID_Customer) {
+      condition.ID_Customer = ID_Customer;
+    }
+    if (ID_Voucher) {
+      condition.ID_Voucher = ID_Voucher;
+    }
+    if (numberTicketAdult) {
+      condition.numberTicketAdult = numberTicketAdult;
+    }
+    if (numberTicketChild) {
+      condition.numberTicketChild = numberTicketChild;
+    }
+
+    //========================= Số tiền phải trả =============================
+
+    const soTienPhaiTraTruocVoucher = await prepareTheBill(
+      numberTicketChild,
+      numberTicketAdult,
+      Calendar?.priceChild,
+      Calendar?.priceAdult
+    );
+
+    // Kiểm tra và tính tiền theo voucher nếu có
+    let soTienPhaiTraSauVoucher = soTienPhaiTraTruocVoucher;
+    if (ID_Voucher) {
+      const Voucher = await db.Voucher.findByPk(ID_Voucher, { raw: true });
+      if (Voucher) {
+        // Xử lý logic tính tiền sau khi áp dụng voucher
+        soTienPhaiTraSauVoucher = await applyVoucher(soTienPhaiTra, Voucher);
+        if (soTienPhaiTraSauVoucher == 0) {
+          return {
+            EM: "Mã voucher đã hết hạn",
+            EC: -2,
+            DT: [],
+          };
+        }
+      } else {
+        return {
+          EM: "Mã voucher không tồn tại",
+          EC: -2,
+          DT: [],
+        };
+      }
+    }
+
+    condition.total_money = soTienPhaiTraTruocVoucher;
+    condition.paid_money = 0;
+    condition.remaining_money = soTienPhaiTraSauVoucher;
+    condition.cancel_booking = "0";
+    condition.payment_method = "TẠI QUẦY";
+    condition.payment_status = "CHƯA THANH TOÁN";
+    condition.status = "CHỜ XÁC NHẬN";
+    const data = await db.BookingTour.create(condition);
+
+    return {
+      EM: "Đặt tour thành công ",
+      EC: 0,
+      DT: data,
+    };
+  } catch (error) {
+    console.log(">>> error", error);
+    return {
+      EM: "Loi server !!!",
+      EC: -5,
+      DT: [],
+    };
+  }
+};
+
+const createBookingVNPAY = async (rawData) => {
+  const {
+    ID_Calendar,
+    ID_Customer,
+    ID_Voucher,
+    numberTicketAdult,
+    numberTicketChild,
+  } = rawData;
+
+  try {
+    const Calendar = await db.Calendar.findByPk(ID_Calendar, { raw: true });
+    const Customer = await db.Calendar.findByPk(ID_Customer, { raw: true });
+
+    if (!Customer) {
+      return {
+        EM: "Khách hàng không tồn tại",
+        EC: -2,
+        DT: [],
+      };
+    }
+
+    if (!Calendar) {
+      return {
+        EM: "Lịch tour không tồn tại",
+        EC: -2,
+        DT: [],
+      };
+    }
+
+    let tongveCon = await remainingSeats(ID_Calendar);
+    let tongVeDat = +numberTicketAdult + +numberTicketChild;
+
+    if (tongVeDat > tongveCon) {
+      return {
+        EM: "Hết chỗ !!!",
+        EC: -2,
+        DT: [],
+      };
+    }
+
+    const condition = {};
+    if (ID_Calendar) {
+      condition.ID_Calendar = ID_Calendar;
+    }
+    if (ID_Customer) {
+      condition.ID_Customer = ID_Customer;
+    }
+    if (ID_Voucher) {
+      condition.ID_Voucher = ID_Voucher;
+    }
+    if (numberTicketAdult) {
+      condition.numberTicketAdult = numberTicketAdult;
+    }
+    if (numberTicketChild) {
+      condition.numberTicketChild = numberTicketChild;
+    }
+
+    //========================= Số tiền phải trả =============================
+
+    const soTienPhaiTraTruocVoucher = await prepareTheBill(
+      numberTicketChild,
+      numberTicketAdult,
+      Calendar?.priceChild,
+      Calendar?.priceAdult
+    );
+
+    // Kiểm tra và tính tiền theo voucher nếu có
+    let soTienPhaiTraSauVoucher = soTienPhaiTraTruocVoucher;
+    if (ID_Voucher) {
+      const Voucher = await db.Voucher.findByPk(ID_Voucher, { raw: true });
+      if (Voucher) {
+        // Xử lý logic tính tiền sau khi áp dụng voucher
+        soTienPhaiTraSauVoucher = await applyVoucher(soTienPhaiTra, Voucher);
+        if (soTienPhaiTraSauVoucher == 0) {
+          return {
+            EM: "Mã voucher đã hết hạn",
+            EC: -2,
+            DT: [],
+          };
+        }
+      } else {
+        return {
+          EM: "Mã voucher không tồn tại",
+          EC: -2,
+          DT: [],
+        };
+      }
+    }
+
+    //========================= Số tiền đã thanh toán =============================
+
+    condition.total_money = soTienPhaiTraTruocVoucher;
+    condition.paid_money = soTienPhaiTraSauVoucher;
+    condition.remaining_money = 0;
+    condition.cancel_booking = "0";
+    condition.payment_method = "ONLINE";
+    condition.payment_status = "CHƯA THANH TOÁN";
+    condition.status = "CHỜ XÁC NHẬN";
+
+    const data = await db.BookingTour.create(condition);
+
+    return {
+      EM: "Đặt tour thành công ",
+      EC: 0,
+      DT: data,
+    };
+  } catch (error) {
+    console.log(">>> error", error);
+    return {
+      EM: "Loi server !!!",
+      EC: -5,
+      DT: [],
+    };
+  }
+};
+
 export default {
   createBooking,
   updateBooking,
   readBooking,
   readAllBooking,
   createCancelBooking,
+  createBookingVNPAY,
 };
