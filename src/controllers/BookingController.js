@@ -170,13 +170,7 @@ class Booking {
       numberTicketAdult,
       numberTicketChild,
     } = req.body;
-
-    if (
-      !ID_Calendar ||
-      !ID_Customer ||
-      !numberTicketAdult ||
-      !numberTicketChild
-    ) {
+    if (!ID_Calendar || !ID_Customer || !numberTicketAdult) {
       return res.status(200).json({
         EM: "Nhập thiếu trường dữ liệu !!!",
         EC: -2,
@@ -186,6 +180,7 @@ class Booking {
 
     try {
       const data = await BookingService.createBookingVNPAY(req.body);
+      console.log("data", data);
       req.dataBooking = data;
       next();
     } catch (err) {
@@ -216,6 +211,7 @@ class Booking {
       let secretKey = config.get("vnp_HashSecret");
       let vnpUrl = config.get("vnp_Url");
       let returnUrl = config.get("vnp_ReturnUrl");
+
       let orderId = moment(date).format("DDHHmmss");
 
       let locale = "vn";
@@ -245,9 +241,9 @@ class Booking {
       vnpUrl += "?" + querystring.stringify(vnp_Params, { encode: false });
 
       return res.status(200).json({
-        statusCode: 200,
-        msg: "Đã tạo thanh toán",
-        data: {
+        EC: 0,
+        EM: "Đã tạo thanh toán",
+        DT: {
           url: vnpUrl,
         },
       });
@@ -258,6 +254,53 @@ class Booking {
         EC: -5,
         DT: [],
       };
+    }
+  }
+
+  async vnpay_return(req, res) {
+    let config = require("config");
+    let querystring = require("qs");
+    let crypto = require("crypto");
+
+    var vnp_Params = req.query;
+
+    console.log("vnp_Params", vnp_Params);
+    var secureHash = vnp_Params["vnp_SecureHash"];
+
+    delete vnp_Params["vnp_SecureHash"];
+    delete vnp_Params["vnp_SecureHashType"];
+
+    vnp_Params = sortObject(vnp_Params);
+
+    var secretKey = config.get("vnp_HashSecret");
+
+    var signData = querystring.stringify(vnp_Params, { encode: false });
+    var hmac = crypto.createHmac("sha512", secretKey);
+    var signed = hmac.update(new Buffer(signData, "utf-8")).digest("hex");
+    // console.log("signed", signed);
+    if (secureHash === signed) {
+      var orderId = vnp_Params["vnp_TxnRef"];
+      var rspCode = vnp_Params["vnp_ResponseCode"];
+
+      const updateBooking = await BookingService.updateBooking({
+        status: "ĐÃ THANH TOÁN",
+        id: orderId,
+        // sendEmail: true,
+      });
+
+      console.log("updateBooking", updateBooking);
+
+      return res.status(200).json({
+        EC: 0,
+        EM: "Đơn hàng đã được thanh toán thành công.",
+        DT: updateBooking,
+      });
+    } else {
+      return res.status(500).json({
+        EC: -5,
+        EM: "Đơn hàng thanh toán thất bại.",
+        DT: [],
+      });
     }
   }
 }

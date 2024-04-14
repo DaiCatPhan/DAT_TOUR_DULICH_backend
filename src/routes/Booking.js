@@ -15,6 +15,6 @@ router.post(
   BookingController.handleCreatePaymentVnpayUrl
 );
 
-// router.get("/vnpay/vnpay_return", paymentController.vnpay_return);
+router.get("/vnpay/vnpay_return", BookingController.vnpay_return);
 
 export default router;

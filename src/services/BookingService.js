@@ -444,7 +444,15 @@ const createBookingVNPAY = async (rawData) => {
   } = rawData;
 
   try {
-    const Calendar = await db.Calendar.findByPk(ID_Calendar, { raw: true });
+    const Calendar = await db.Calendar.findByPk(ID_Calendar, {
+      raw: true,
+      nest: true,
+      include: [
+        {
+          model: db.Tour,
+        },
+      ],
+    });
     const Customer = await db.Calendar.findByPk(ID_Customer, { raw: true });
 
     if (!Customer) {
@@ -533,12 +541,15 @@ const createBookingVNPAY = async (rawData) => {
     condition.payment_status = "CHƯA THANH TOÁN";
     condition.status = "CHỜ XÁC NHẬN";
 
-    const data = await db.BookingTour.create(condition);
+    let data = await db.BookingTour.create(condition);
+
+    const plainData = data.get({ plain: true });
+    plainData.ID_Tour = Calendar?.ID_Tour;
 
     return {
       EM: "Đặt tour thành công ",
       EC: 0,
-      DT: data,
+      DT: plainData,
     };
   } catch (error) {
     console.log(">>> error", error);
