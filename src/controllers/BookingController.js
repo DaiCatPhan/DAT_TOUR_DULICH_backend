@@ -13,12 +13,7 @@ class Booking {
       numberTicketChild,
     } = req.body;
 
-    if (
-      !ID_Calendar ||
-      !ID_Customer ||
-      !numberTicketAdult ||
-      !numberTicketChild
-    ) {
+    if (!ID_Calendar || !ID_Customer || !numberTicketAdult) {
       return res.status(200).json({
         EM: "Nhập thiếu trường dữ liệu !!!",
         EC: -2,

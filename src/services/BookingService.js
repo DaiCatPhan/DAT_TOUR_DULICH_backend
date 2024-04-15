@@ -219,10 +219,15 @@ const readAllBooking = async (rawData) => {
     const data = await db.BookingTour.findAndCountAll({
       where: condition,
       include: [
-        { model: db.Customer },
+        {
+          model: db.Customer,
+          attributes: {
+            exclude: ["createdAt", "updatedAt", "refresh_token", "password"],
+          },
+        },
         { model: db.Calendar, include: { model: db.Tour } },
       ],
-      order: [["updatedAt", "DESC"]],
+      order: [["updatedAt", "ASC"]],
       limit: limit ? parseInt(limit) : undefined,
       offset: limit && page ? parseInt(offset) : undefined,
     });
@@ -249,10 +254,10 @@ const readAllBooking = async (rawData) => {
     });
 
     data.numberStatus = {
-      Soluong_ChoXacNhan: Soluong_ChoXacNhan,
-      Soluong_DaDuyet: Soluong_DaDuyet,
-      Soluong_ChoHuy: Soluong_ChoHuy,
-      Soluong_DaHuy: Soluong_DaHuy,
+      Soluong_ChoXacNhan: Soluong_ChoXacNhan.count,
+      Soluong_DaDuyet: Soluong_DaDuyet.count,
+      Soluong_ChoHuy: Soluong_ChoHuy.count,
+      Soluong_DaHuy: Soluong_DaHuy.conut,
     };
 
     if (data) {
@@ -393,7 +398,10 @@ const createBooking = async (rawData) => {
       const Voucher = await db.Voucher.findByPk(ID_Voucher, { raw: true });
       if (Voucher) {
         // Xử lý logic tính tiền sau khi áp dụng voucher
-        soTienPhaiTraSauVoucher = await applyVoucher(soTienPhaiTra, Voucher);
+        soTienPhaiTraSauVoucher = await applyVoucher(
+          soTienPhaiTraTruocVoucher,
+          Voucher
+        );
         if (soTienPhaiTraSauVoucher == 0) {
           return {
             EM: "Mã voucher đã hết hạn",
