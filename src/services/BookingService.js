@@ -155,6 +155,50 @@ const updateBooking = async (rawData) => {
   }
 };
 
+const updatePaid = async (rawData) => {
+  const { id, payment_status } = rawData;
+
+  try {
+    const bookingTour = await db.BookingTour.findByPk(id, { raw: true });
+    console.log("bookingTour", bookingTour);
+
+    if (!bookingTour) {
+      return {
+        EM: "Mã đặc tour không tồn tại",
+        EC: -2,
+        DT: [],
+      };
+    }
+
+    const condition = {};
+    if (payment_status) {
+      condition.payment_status = payment_status;
+    }
+    condition.paid_money = bookingTour.total_money;
+    condition.remaining_money = 0;
+
+    const data = await db.BookingTour.update(condition, {
+      where: {
+        id: id,
+      },
+    });
+    console.log("condition", condition);
+
+    return {
+      EM: "Cập nhật đặt tour thành công ",
+      EC: 0,
+      DT: data,
+    };
+  } catch (error) {
+    console.log(">>> error", error);
+    return {
+      EM: "Loi server !!!",
+      EC: -5,
+      DT: [],
+    };
+  }
+};
+
 const readBooking = async (rawData) => {
   try {
     const { status, ID_Customer, page, limit } = rawData;
@@ -208,12 +252,15 @@ const readBooking = async (rawData) => {
 
 const readAllBooking = async (rawData) => {
   try {
-    const { status, page, limit } = rawData;
+    const { payment_status, status, page, limit } = rawData;
     let offset = (page - 1) * +limit;
 
     const condition = {};
     if (status) {
       condition.status = status;
+    }
+    if (payment_status) {
+      condition.payment_status = payment_status;
     }
 
     const data = await db.BookingTour.findAndCountAll({
@@ -252,12 +299,19 @@ const readAllBooking = async (rawData) => {
         status: "ĐÃ HỦY",
       },
     });
+    const Soluong_ChuaThanhToan = await db.BookingTour.findAndCountAll({
+      where: {
+        status: "ĐÃ DUYỆT",
+        payment_status: "ĐÃ THANH TOÁN",
+      },
+    });
 
     data.numberStatus = {
       Soluong_ChoXacNhan: Soluong_ChoXacNhan.count,
       Soluong_DaDuyet: Soluong_DaDuyet.count,
       Soluong_ChoHuy: Soluong_ChoHuy.count,
       Soluong_DaHuy: Soluong_DaHuy.conut,
+      Soluong_ChuaThanhToan: Soluong_ChuaThanhToan.count,
     };
 
     if (data) {
@@ -418,7 +472,7 @@ const createBooking = async (rawData) => {
       }
     }
 
-    condition.total_money = soTienPhaiTraTruocVoucher;
+    condition.total_money = soTienPhaiTraSauVoucher;
     condition.paid_money = 0;
     condition.remaining_money = soTienPhaiTraSauVoucher;
     condition.cancel_booking = "0";
@@ -541,7 +595,7 @@ const createBookingVNPAY = async (rawData) => {
 
     //========================= Số tiền đã thanh toán =============================
 
-    condition.total_money = soTienPhaiTraTruocVoucher;
+    condition.total_money = soTienPhaiTraSauVoucher;
     condition.paid_money = soTienPhaiTraSauVoucher;
     condition.remaining_money = 0;
     condition.cancel_booking = "0";
@@ -576,4 +630,5 @@ export default {
   readAllBooking,
   createCancelBooking,
   createBookingVNPAY,
+  updatePaid,
 };

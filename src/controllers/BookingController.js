@@ -108,6 +108,35 @@ class Booking {
       });
     }
   }
+
+  // [POST] /api/v1/booking/updatePaid
+  async updatePaid(req, res) {
+    const { id, payment_status } = req.body;
+
+    if (!id || !payment_status) {
+      return res.status(200).json({
+        EM: "Nhập thiếu trường dữ liệu !!!",
+        EC: -2,
+        DT: [],
+      });
+    }
+
+    try {
+      const data = await BookingService.updatePaid(req.body);
+      return res.status(200).json({
+        EM: data.EM,
+        EC: data.EC,
+        DT: data.DT, 
+      });
+    } catch (err) {
+      console.log("err <<< ", err);
+      return res.status(500).json({
+        EM: "error server",
+        EC: -5,
+        DT: [],
+      });
+    }
+  }
   // [POST] /api/v1/booking/read
   async read(req, res) {
     const { ID_Customer, page, limit } = req.query;
@@ -137,7 +166,7 @@ class Booking {
   }
   // [POST] /api/v1/booking/readAll
   async readAll(req, res) {
-    const { status, page, limit } = req.query;
+    const {payment_status, status, page, limit } = req.query;
 
     try {
       const data = await BookingService.readAllBooking(req.query);

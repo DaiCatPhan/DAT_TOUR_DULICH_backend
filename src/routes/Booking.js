@@ -5,6 +5,7 @@ import BookingController from "../controllers/BookingController";
 router.post("/create", BookingController.create);
 router.put("/createCancelBooking", BookingController.createCancelBooking);
 router.put("/update", BookingController.update);
+router.put("/updatePaid", BookingController.updatePaid);
 router.get("/read", BookingController.read);
 router.get("/readAll", BookingController.readAll);
 
