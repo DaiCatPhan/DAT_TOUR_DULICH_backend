@@ -79,7 +79,7 @@ class Booking {
       payment_status,
       payment_method,
       status,
-      cancel_booking,
+      cancel_booking, 
       date_cancel_booking,
       reason_cancel_booking,
     } = req.body;
