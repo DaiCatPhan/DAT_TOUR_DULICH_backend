@@ -130,11 +130,11 @@ class Voucher {
 
     if (!id) {
       return res.status(200).json({
-        EM: "Nhập thiếu trường dữ liệu !!!",
+        EM: "Nhập thiếu trường dữ liệu !!!", 
         EC: -2,
         DT: [],
       });
-    }
+    } 
 
     try {
       const data = await VoucherService.read_VoucherUser(req.query);
@@ -155,3 +155,5 @@ class Voucher {
 }
 
 export default new Voucher();
+
+ 

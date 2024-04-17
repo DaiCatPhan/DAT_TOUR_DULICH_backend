@@ -13,19 +13,6 @@ const create_Voucher = async (rawData) => {
   } = rawData;
 
   try {
-    const exitTypeVoucher = await db.Voucher.findOne({
-      where: {
-        nameVoucher: nameVoucher,
-      },
-    });
-    if (exitTypeVoucher) {
-      return {
-        EM: "Tên voucher đã tồn tại !!!",
-        EC: -2,
-        DT: [],
-      };
-    }
-
     const data = await db.Voucher.create({
       typeVoucher: typeVoucher,
       value: value,
@@ -225,21 +212,34 @@ const read_VoucherUser = async (rawData) => {
       where: {
         ID_Customer: id,
       },
-      include: [{ model: db.Voucher }, { model: db.Customer }],
+      include: [
+        { model: db.Voucher },
+        {
+          model: db.Customer,
+          attributes: {
+            exclude: ["createdAt", "updatedAt", "refresh_token", "password"],
+          },
+        },
+      ],
+      raw: true,
+      nest: true,
     });
 
-    if (!data) {
-      return {
-        EM: "Không tồn tại voucher user !!!",
-        EC: -2,
-        DT: [],
-      };
-    }
+    const dataFilter = data.filter((item) => {
+      const currentDay = new Date();
+      const endDayVoucher = new Date(item.Voucher.toDate);
+
+      console.log("currentDay", currentDay);
+      console.log("endDayVoucher", endDayVoucher);
+      console.log("a", currentDay > endDayVoucher);
+
+      return currentDay < endDayVoucher;
+    });
 
     return {
       EM: "Lấy voucher cho khách hàng thành công ",
       EC: 0,
-      DT: data,
+      DT: dataFilter,
     };
   } catch (error) {
     console.log(">>> error", error);
@@ -256,7 +256,5 @@ export default {
   readAll_Voucher,
   update_Voucher,
   create_VoucherUser,
-  read_VoucherUser, 
+  read_VoucherUser,
 };
-
-

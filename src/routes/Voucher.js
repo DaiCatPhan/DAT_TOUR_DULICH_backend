@@ -11,6 +11,6 @@ router.delete("/delete", Funtion.FunDelete);
 
 // VOUCHER_USER
 router.post("/create_voucherUser", VoucherController.createVoucherUser);
-router.get("/read_voucherUser", VoucherController.readVoucherUser);
+router.get("/read_voucherUser", VoucherController.readVoucherUser); 
 
 export default router;
