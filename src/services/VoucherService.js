@@ -1,4 +1,5 @@
 import db from "../app/models";
+import moment from "moment";
 
 // ==================== VOUCHER =====================
 const create_Voucher = async (rawData) => {
@@ -16,8 +17,8 @@ const create_Voucher = async (rawData) => {
     const data = await db.Voucher.create({
       typeVoucher: typeVoucher,
       value: value,
-      fromDate: fromDate,
-      toDate: toDate,
+      fromDate: moment(fromDate).format("YYYY-MM-DD"),
+      toDate: moment(toDate).format("YYYY-MM-DD"),
       amount: amount,
       remainAmount: amount,
       nameVoucher: nameVoucher,

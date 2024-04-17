@@ -1,4 +1,5 @@
 import db from "../app/models";
+import moment from "moment";
 
 const createCalender = async (rawData) => {
   try {
@@ -46,10 +47,10 @@ const createCalender = async (rawData) => {
     const dataCreate = {
       ID_Tour: ID_Tour,
       numberSeat: numberSeat,
-      startDay: startDay,
-      endDay: endDay,
+      startDay: moment(startDay).format("YYYY-MM-DD"),
+      endDay: moment(endDay).format("YYYY-MM-DD"),
       priceAdult: priceAdult,
-      priceChild: priceChild, 
+      priceChild: priceChild,
       status: status,
     };
 
