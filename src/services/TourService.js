@@ -286,8 +286,6 @@ const getTourDetailById = async (rawData) => {
 
     dataTour.Calendars = dataTourCalendar;
 
-    console.log("dataTour", dataTour);
-
     if (dataTour) {
       const handleCalendarPromise = dataTour.Calendars.map(async (item) => {
         const sochoConali = await remainingSeats(item.id);

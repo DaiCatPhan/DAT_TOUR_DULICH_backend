@@ -3,10 +3,15 @@ import CalendarService from "../services/CalendarService";
 class Calendar {
   async create(req, res) {
     try {
-      const { ID_Tour, numberSeat, startDay, endDay, priceAdult, priceChild } =
-        req.body;
-
-      console.log("reqbody", req.body);
+      const {
+        ID_Tour,
+        numberSeat,
+        startDay,
+        endDay,
+        priceAdult,
+        priceChild,
+        status,
+      } = req.body;
 
       if (
         !ID_Tour ||
@@ -33,8 +38,8 @@ class Calendar {
       console.log("err <<< ", err);
       return res.status(500).json({
         EM: "error server", // error message
-        EC: "-1", // error code
-        DT: "", // data
+        EC: -5, // error code
+        DT: [], // data
       });
     }
   }

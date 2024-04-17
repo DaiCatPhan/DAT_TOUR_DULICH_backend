@@ -2,8 +2,15 @@ import db from "../app/models";
 
 const createCalender = async (rawData) => {
   try {
-    const { ID_Tour, numberSeat, startDay, endDay, priceAdult, priceChild } =
-      rawData;
+    const {
+      ID_Tour,
+      numberSeat,
+      startDay,
+      endDay,
+      priceAdult,
+      priceChild,
+      status,
+    } = rawData;
 
     const exitTour = await db.Tour.findByPk(ID_Tour);
     if (!exitTour) {
@@ -16,13 +23,10 @@ const createCalender = async (rawData) => {
 
     // Kiểm tra startDay phải lớn hơn hoặc bằng ngày hiện tại
 
-    const startDateTime = new Date(startDay);
+    const startDateTime = startDay;
     const currentDateTime = new Date();
 
-    console.log("startDateTime", startDateTime);
-    console.log("currentDateTime", currentDateTime);
-
-    if (startDateTime <= currentDateTime) {
+    if (startDateTime < currentDateTime) {
       return {
         EM: "Ngày bắt đầu phải lớn hơn hoặc bằng ngày hiện tại",
         EC: -3,
@@ -31,7 +35,7 @@ const createCalender = async (rawData) => {
     }
 
     // Kiểm tra endDay phải lớn hơn hoặc bằng ngày startDay
-    if (new Date(endDay) <= new Date(startDay)) {
+    if (endDay < startDay) {
       return {
         EM: "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu",
         EC: -3,
@@ -39,14 +43,17 @@ const createCalender = async (rawData) => {
       };
     }
 
-    const dataCalendar = await db.Calendar.create({
+    const dataCreate = {
       ID_Tour: ID_Tour,
       numberSeat: numberSeat,
       startDay: startDay,
       endDay: endDay,
       priceAdult: priceAdult,
-      priceChild: priceChild,
-    });
+      priceChild: priceChild, 
+      status: status,
+    };
+
+    const dataCalendar = await db.Calendar.create(dataCreate);
 
     return {
       EM: "Tạo lịch thành công ",
