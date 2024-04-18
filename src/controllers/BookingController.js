@@ -79,7 +79,7 @@ class Booking {
       payment_status,
       payment_method,
       status,
-      cancel_booking, 
+      cancel_booking,
       date_cancel_booking,
       reason_cancel_booking,
     } = req.body;
@@ -126,7 +126,7 @@ class Booking {
       return res.status(200).json({
         EM: data.EM,
         EC: data.EC,
-        DT: data.DT, 
+        DT: data.DT,
       });
     } catch (err) {
       console.log("err <<< ", err);
@@ -166,7 +166,7 @@ class Booking {
   }
   // [POST] /api/v1/booking/readAll
   async readAll(req, res) {
-    const {payment_status, status, page, limit } = req.query;
+    const { payment_status, status, page, limit } = req.query;
 
     try {
       const data = await BookingService.readAllBooking(req.query);
@@ -307,16 +307,14 @@ class Booking {
       var rspCode = vnp_Params["vnp_ResponseCode"];
 
       const updateBooking = await BookingService.updateBooking({
-        status: "ĐÃ THANH TOÁN",
+        payment_status: "ĐÃ THANH TOÁN",
         id: orderId,
         // sendEmail: true,
       });
 
-      console.log("updateBooking", updateBooking);
-
       return res.status(200).json({
         EC: 0,
-        EM: "Đơn hàng đã được thanh toán thành công.",
+        EM: "Tour đã được thanh toán thành công.",
         DT: updateBooking,
       });
     } else {

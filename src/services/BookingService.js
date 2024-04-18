@@ -160,7 +160,6 @@ const updatePaid = async (rawData) => {
 
   try {
     const bookingTour = await db.BookingTour.findByPk(id, { raw: true });
-    console.log("bookingTour", bookingTour);
 
     if (!bookingTour) {
       return {
@@ -182,7 +181,6 @@ const updatePaid = async (rawData) => {
         id: id,
       },
     });
-    console.log("condition", condition);
 
     return {
       EM: "Cập nhật đặt tour thành công ",
