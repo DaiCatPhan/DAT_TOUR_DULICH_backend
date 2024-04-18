@@ -4,15 +4,8 @@ class Tour {
   // [POST] /api/v1/tour/create
   async create(req, res) {
     try {
-      const {
-        name,
-        type,
-        priceAdult,
-        priceChild,
-        duration,
-        status,
-        vehicle,
-      } = req.body;
+      const { name, type, priceAdult, priceChild, duration, status, vehicle } =
+        req.body;
 
       // Validate
       if (
@@ -51,22 +44,22 @@ class Tour {
   // [GET] /api/v1/tour/read
   async read(req, res) {
     try {
-      const { id } = req.query;
+      const { id, sortCalendar,numberCalenadar,getAll } = req.query;
 
       if (!id) {
         return res.status(200).json({
           EM: "Nhập thiếu trường dữ liệu !!!",
           EC: -2,
           DT: [],
-        });
+        }); 
       }
 
-      const data = await TourService.getTourDetailById(req.query); 
+      const data = await TourService.getTourDetailById(req.query);
 
       res.status(200).json({
         EM: data.EM,
         EC: data.EC,
-        DT: data.DT, 
+        DT: data.DT,
       });
     } catch (err) {
       console.log("err <<< ", err);
@@ -81,9 +74,9 @@ class Tour {
   // [GET] /api/v1/tour/readAll
   async readAll(req, res) {
     try {
-      const {id ,  name, page, limit, type, startDay } = req.query;
+      const { id, name, page, limit, type, startDay } = req.query;
 
-      let data = await TourService.getTourWithPagination(req.query);  
+      let data = await TourService.getTourWithPagination(req.query);
       return res.status(200).json({
         EM: data.EM,
         EC: data.EC,
@@ -97,7 +90,7 @@ class Tour {
         DT: [], // data
       });
     }
-  } 
+  }
 
   // [POST] /api/v1/tour/update
   async update(req, res) {

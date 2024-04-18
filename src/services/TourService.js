@@ -253,7 +253,7 @@ const remainingSeats = async (ID_Calendar) => {
 };
 
 const getTourDetailById = async (rawData) => {
-  const { id } = rawData;
+  const { id, sortCalendar, numberCalenadar, getAll } = rawData;
   try {
     let dataTour = await db.Tour.findOne({
       where: {
@@ -276,16 +276,36 @@ const getTourDetailById = async (rawData) => {
       };
     }
 
-    let dataTourCalendar = await db.Calendar.findAll({
+    let options = {
       where: {
         ID_Tour: id,
       },
       raw: true,
       nest: true,
-    });
+    };
+    // Sắp xếp
+    if (sortCalendar === "ASC" || sortCalendar === "DESC") {
+      options.order = [["startDay", sortCalendar]];
+    }
+    // Lấy số lịch của tour đó là bao nhiêu
+    if (numberCalenadar) {
+      options.limit = +numberCalenadar;
+    }
+    let dataTourCalendar = await db.Calendar.findAll(options);
 
-    dataTour.Calendars = dataTourCalendar;
+    // Lấy hết tích or lấy lịch lớn hơn nhày hiện tại
+    if (getAll && getAll == "false") {
+      const currentDate = new Date();
+      const filteredCalendar = dataTourCalendar.filter((item) => {
+        const startDate = new Date(item.startDay);
+        return startDate > currentDate;
+      });
+      dataTour.Calendars = filteredCalendar;
+    } else {
+      dataTour.Calendars = dataTourCalendar;
+    }
 
+    // Tính số chỗ còn lại
     if (dataTour) {
       const handleCalendarPromise = dataTour.Calendars.map(async (item) => {
         const sochoConali = await remainingSeats(item.id);

@@ -391,7 +391,7 @@ const createBooking = async (rawData) => {
 
   try {
     const Calendar = await db.Calendar.findByPk(ID_Calendar, { raw: true });
-    const Customer = await db.Calendar.findByPk(ID_Customer, { raw: true });
+    const Customer = await db.Customer.findByPk(ID_Customer, { raw: true });
 
     if (!Customer) {
       return {
@@ -515,7 +515,7 @@ const createBookingVNPAY = async (rawData) => {
         },
       ],
     });
-    const Customer = await db.Calendar.findByPk(ID_Customer, { raw: true });
+    const Customer = await db.Customer.findByPk(ID_Customer, { raw: true });
 
     if (!Customer) {
       return {
