@@ -18,12 +18,20 @@ const checkTourName = async (nameTour) => {
 };
 
 const createTour = async (rawData) => {
-  const { name, type, priceAdult, priceChild, duration, status, vehicle } =
-    rawData;
+  const {
+    name,
+    type,
+    priceAdult,
+    priceChild,
+    numbeOfDay,
+    numberOfNight,
+    status,
+    vehicle,
+  } = rawData;
   const checkTourExit = await checkTourName(name);
   if (checkTourExit) {
     return {
-      EM: "Tour đã tồn tại !!!",
+      EM: "Tên tour đã tồn tại !!!",
       EC: -1,
       DT: [],
     };
@@ -35,7 +43,8 @@ const createTour = async (rawData) => {
       type: type,
       priceAdult: priceAdult,
       priceChild: priceChild,
-      duration: duration,
+      numbeOfDay: numbeOfDay,
+      numberOfNight: numberOfNight,
       vehicle: vehicle,
       status: status,
     });
@@ -56,8 +65,17 @@ const createTour = async (rawData) => {
 };
 
 const updateTour = async (rawData) => {
-  const { id, name, type, priceAdult, priceChild, duration, status, vehicle } =
-    rawData;
+  const {
+    id,
+    name,
+    type,
+    priceAdult,
+    priceChild,
+    numbeOfDay,
+    numberOfNight,
+    status,
+    vehicle,
+  } = rawData;
   const checkTourExit = await db.Tour.findByPk(+id);
   if (!checkTourExit) {
     return {
@@ -74,7 +92,8 @@ const updateTour = async (rawData) => {
         type: type,
         priceAdult: priceAdult,
         priceChild: priceChild,
-        duration: duration,
+        numbeOfDay: numbeOfDay,
+        numberOfNight: numberOfNight,
         vehicle: vehicle,
         status: status,
       },
@@ -134,8 +153,7 @@ const UpImageTour = async (rawData) => {
 };
 
 const getTourWithPagination = async (rawData) => {
-  const { id, name, page, limit, type, startDay } = rawData;
-  console.log("rawData", rawData);
+  const { id, name, page, limit, type, startDay, status } = rawData;
   try {
     const offset = (page - 1) * limit;
     const whereCondition = {};
@@ -149,7 +167,11 @@ const getTourWithPagination = async (rawData) => {
     }
 
     if (type) {
-      whereCondition.type = { [Op.like]: `%${type}%` };
+      whereCondition.type = { [Op.like]: `%${type}%` }; 
+    }
+
+    if (status) {
+      whereCondition.status = status; 
     }
 
     if (startDay) {
@@ -197,10 +219,12 @@ const getTourWithPagination = async (rawData) => {
     };
 
     const { count, rows } = await db.Tour.findAndCountAll(options);
+
     let data = {
       totalRows: count,
       tours: rows,
     };
+
     return {
       EM: "Lấy dữ liệu thành công ",
       EC: 0,

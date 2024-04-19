@@ -21,9 +21,8 @@ module.exports = (sequelize, DataTypes) => {
 
       Tour.hasMany(models.ViewedTour, {
         sourceKey: "id",
-        foreignKey: "ID_Tour", 
+        foreignKey: "ID_Tour",
       });
-       
     }
   }
   Tour.init(
@@ -32,7 +31,8 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       priceAdult: DataTypes.INTEGER,
       priceChild: DataTypes.INTEGER,
-      duration: DataTypes.STRING,
+      numbeOfDay: DataTypes.INTEGER,
+      numberOfNight: DataTypes.INTEGER, 
       image: DataTypes.STRING,
       status: DataTypes.STRING,
       vehicle: DataTypes.STRING,
