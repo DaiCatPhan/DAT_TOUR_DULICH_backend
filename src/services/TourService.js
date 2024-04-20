@@ -153,6 +153,87 @@ const UpImageTour = async (rawData) => {
 };
 
 const getTourWithPagination = async (rawData) => {
+  const { id, name, page, limit, type, startDay } = rawData;
+  try {
+    const offset = (page - 1) * limit;
+    const whereCondition = {};
+
+    if (id) {
+      whereCondition.id = +id;
+    }
+
+    if (name) {
+      whereCondition.name = { [Op.like]: `%${name}%` };
+    }
+
+    if (type) {
+      whereCondition.type = { [Op.like]: `%${type}%` };
+    }
+
+    if (startDay) {
+      const options = {
+        where: whereCondition,
+        limit: limit ? parseInt(limit) : undefined,
+        offset: limit && page ? parseInt(offset) : undefined,
+        order: [["createdAt", "DESC"]],
+        include: [
+          {
+            model: db.Calendar,
+            where: {
+              startDay: {
+                [Op.gte]: startDay,
+              },
+            },
+          },
+          { model: db.ProcessTour },
+        ],
+      };
+
+      const { count, rows } = await db.Tour.findAndCountAll(options);
+      let data = {
+        totalRows: count,
+        tours: rows,
+      };
+      return {
+        EM: "Lấy dữ liệu thành công ",
+        EC: 0,
+        DT: data,
+      };
+    }
+
+    const options = {
+      where: whereCondition,
+      limit: limit ? parseInt(limit) : undefined,
+      offset: limit && page ? parseInt(offset) : undefined,
+      include: [
+        {
+          model: db.Calendar,
+        },
+        { model: db.ProcessTour },
+      ],
+    };
+
+    const { count, rows } = await db.Tour.findAndCountAll(options);
+    let data = {
+      totalRows: count,
+      tours: rows,
+    };
+    return {
+      EM: "Lấy dữ liệu thành công ",
+      EC: 0,
+      DT: data,
+    };
+  } catch (err) {
+    console.log(">> loi", err);
+    return {
+      EM: "Loi server !!!",
+      EC: -5,
+      DT: [],
+    };
+  }
+};
+
+const getToursFilter = async (rawData) => {
   const {
     id,
     name,
@@ -167,6 +248,7 @@ const getTourWithPagination = async (rawData) => {
     sortBycreatedAt,
     sortOrder,
   } = rawData;
+
   try {
     const offset = (page - 1) * limit;
     const whereCondition = {};
@@ -187,82 +269,99 @@ const getTourWithPagination = async (rawData) => {
       whereCondition.status = status;
     }
 
-    const options = {
+    // LOI
+    if (startDay) {
+      const options = {
+        where: whereCondition,
+        limit: limit ? parseInt(limit) : undefined,
+        offset: limit && page ? parseInt(offset) : undefined,
+
+        include: [
+          {
+            model: db.Calendar,
+            where: {
+              startDay: {
+                [Op.gte]: startDay,
+              },
+            },
+            raw: true,
+            nest: true,
+          },
+          { model: db.ProcessTour, raw: true, nest: true },
+        ],
+      };
+
+      const { count, rows } = await db.Tour.findAndCountAll(options);
+
+      console.log("startDay", rows);
+      let data = {
+        totalRows: count,
+        tours: rows,
+      };
+      return {
+        EM: "Lấy dữ liệu thành công ",
+        EC: 0,
+        DT: data,
+      };
+    }
+
+    let options = {
       where: whereCondition,
       limit: limit ? parseInt(limit) : undefined,
       offset: limit && page ? parseInt(offset) : undefined,
       include: [
         {
           model: db.Calendar,
-          // ...(startDay && {
-          //   where: {
-          //     startDay: {
-          //       [Op.gte]: startDay,
-          //     },
-          //   },
-          // }),
+          raw: true,
+          nest: true,
         },
-        { model: db.ProcessTour },
+        { model: db.ProcessTour, raw: true, nest: true },
       ],
-      raw: true,
-      nest: true,
     };
 
-    // Thêm sắp xếp theo giá tour và ngày khởi hành
     if (sortBycreatedAt && sortOrder) {
       options.order = [["createdAt", sortOrder]];
     }
 
-    // Thêm sắp xếp theo giá tour và ngày khởi hành
     if (sortByPrice && sortOrder) {
       options.order = [["priceAdult", sortOrder]];
     }
 
-    // Thêm sắp xếp theo khoảng thời gian tour
     if (sortByDuration && sortOrder) {
       options.order = [["numbeOfDay", sortOrder]];
     }
 
-    //===================================================================================
+    // LOI
+    if (sortByStartDate && sortOrder) {
+      const options = {
+        where: whereCondition,
+        limit: limit ? parseInt(limit) : undefined,
+        offset: limit && page ? parseInt(offset) : undefined,
+        include: [
+          {
+            model: db.Calendar,
+            ...(startDay && {
+              where: {
+                startDay: {
+                  [Op.gte]: startDay,
+                },
+              },
+            }),
+          },
+          { model: db.ProcessTour },
+        ],
+        raw: true,
+        nest: true,
+      };
+      const { count, rows } = await db.Tour.findAndCountAll(options);
+      console.log("rows", rows);
 
-    // if (sortByStartDate && sortOrder) {
-    //   if (!options.order) {
-    //     options.order = [];
-    //   }
-    //   options.order.push([{ model: db.Calendar }, "startDay", sortOrder]); // Sắp xếp theo ngày khởi hành
-    // }
-
-    // if (sortByStartDate && sortOrder) {
-    //   const options = {
-    //     where: whereCondition,
-    //     limit: limit ? parseInt(limit) : undefined,
-    //     offset: limit && page ? parseInt(offset) : undefined,
-    //     include: [
-    //       {
-    //         model: db.Calendar,
-    //         ...(startDay && {
-    //           where: {
-    //             startDay: {
-    //               [Op.gte]: startDay,
-    //             },
-    //           },
-    //         }),
-    //         order: ["startDay", sortOrder],
-    //       },
-    //       { model: db.ProcessTour },
-    //     ],
-    //     raw: true,
-    //     nest: true,
-    //   };
-    //   const { count, rows } = await db.Tour.findAndCountAll(options);
-    //   console.log("rows", rows);
-
-    //   return {
-    //     EM: "Lấy dữ liệu thành công ",
-    //     EC: 0,
-    //     DT: rows,
-    //   };
-    // }
+      return {
+        EM: "Lấy dữ liệu thành công ",
+        EC: 0,
+        DT: rows,
+      };
+    }
 
     const { count, rows } = await db.Tour.findAndCountAll(options);
 
@@ -409,4 +508,5 @@ export default {
   getTourWithPagination,
   getTourDetailById,
   updateTour,
+  getToursFilter,
 };
