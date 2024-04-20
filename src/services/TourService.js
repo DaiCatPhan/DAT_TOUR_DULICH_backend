@@ -153,7 +153,20 @@ const UpImageTour = async (rawData) => {
 };
 
 const getTourWithPagination = async (rawData) => {
-  const { id, name, page, limit, type, startDay, status } = rawData;
+  const {
+    id,
+    name,
+    page,
+    limit,
+    type,
+    startDay,
+    status,
+    sortByPrice,
+    sortByStartDate,
+    sortByDuration,
+    sortBycreatedAt,
+    sortOrder,
+  } = rawData;
   try {
     const offset = (page - 1) * limit;
     const whereCondition = {};
@@ -167,56 +180,89 @@ const getTourWithPagination = async (rawData) => {
     }
 
     if (type) {
-      whereCondition.type = { [Op.like]: `%${type}%` }; 
+      whereCondition.type = { [Op.like]: `%${type}%` };
     }
 
     if (status) {
-      whereCondition.status = status; 
-    }
-
-    if (startDay) {
-      const options = {
-        where: whereCondition,
-        limit: limit ? parseInt(limit) : undefined,
-        offset: limit && page ? parseInt(offset) : undefined,
-        order: [["createdAt", "DESC"]],
-        include: [
-          {
-            model: db.Calendar,
-            where: {
-              startDay: {
-                [Op.gte]: startDay,
-              },
-            },
-          },
-          { model: db.ProcessTour },
-        ],
-      };
-
-      const { count, rows } = await db.Tour.findAndCountAll(options);
-      let data = {
-        totalRows: count,
-        tours: rows,
-      };
-      return {
-        EM: "Lấy dữ liệu thành công ",
-        EC: 0,
-        DT: data,
-      };
+      whereCondition.status = status;
     }
 
     const options = {
       where: whereCondition,
       limit: limit ? parseInt(limit) : undefined,
       offset: limit && page ? parseInt(offset) : undefined,
-      order: [["createdAt", "DESC"]],
       include: [
         {
           model: db.Calendar,
+          // ...(startDay && {
+          //   where: {
+          //     startDay: {
+          //       [Op.gte]: startDay,
+          //     },
+          //   },
+          // }),
         },
         { model: db.ProcessTour },
       ],
+      raw: true,
+      nest: true,
     };
+
+    // Thêm sắp xếp theo giá tour và ngày khởi hành
+    if (sortBycreatedAt && sortOrder) {
+      options.order = [["createdAt", sortOrder]];
+    }
+
+    // Thêm sắp xếp theo giá tour và ngày khởi hành
+    if (sortByPrice && sortOrder) {
+      options.order = [["priceAdult", sortOrder]];
+    }
+
+    // Thêm sắp xếp theo khoảng thời gian tour
+    if (sortByDuration && sortOrder) {
+      options.order = [["numbeOfDay", sortOrder]];
+    }
+
+    //===================================================================================
+
+    // if (sortByStartDate && sortOrder) {
+    //   if (!options.order) {
+    //     options.order = [];
+    //   }
+    //   options.order.push([{ model: db.Calendar }, "startDay", sortOrder]); // Sắp xếp theo ngày khởi hành
+    // }
+
+    // if (sortByStartDate && sortOrder) {
+    //   const options = {
+    //     where: whereCondition,
+    //     limit: limit ? parseInt(limit) : undefined,
+    //     offset: limit && page ? parseInt(offset) : undefined,
+    //     include: [
+    //       {
+    //         model: db.Calendar,
+    //         ...(startDay && {
+    //           where: {
+    //             startDay: {
+    //               [Op.gte]: startDay,
+    //             },
+    //           },
+    //         }),
+    //         order: ["startDay", sortOrder],
+    //       },
+    //       { model: db.ProcessTour },
+    //     ],
+    //     raw: true,
+    //     nest: true,
+    //   };
+    //   const { count, rows } = await db.Tour.findAndCountAll(options);
+    //   console.log("rows", rows);
+
+    //   return {
+    //     EM: "Lấy dữ liệu thành công ",
+    //     EC: 0,
+    //     DT: rows,
+    //   };
+    // }
 
     const { count, rows } = await db.Tour.findAndCountAll(options);
 
