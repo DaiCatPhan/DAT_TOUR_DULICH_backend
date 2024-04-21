@@ -242,6 +242,7 @@ const getToursFilter = async (rawData) => {
     type,
     startDay,
     status,
+    sortBooking,
     sortByPrice,
     sortByStartDate,
     sortByDuration,
@@ -341,7 +342,10 @@ const getToursFilter = async (rawData) => {
       });
 
       const tourPromiseArray = tours?.rows?.map(async (tour) => {
-        const Calendar = await db.Calendar.findOne({
+        const Calendar = await db.Calendar.findAll({
+          raw: true,
+          nest: true,
+
           where: {
             startDay: {
               [Op.gte]: new Date(),
@@ -349,11 +353,12 @@ const getToursFilter = async (rawData) => {
             ID_Tour: tour.id,
           },
           order: [["startDay", "ASC"]],
+          limit: 1,
         });
 
         return {
           ...tour,
-          Calendar: Calendar || {},
+          Calendars: Calendar,
         };
       });
 
@@ -364,36 +369,40 @@ const getToursFilter = async (rawData) => {
       let sortedArray = [];
       if (sortOrder == "ASC") {
         sortedArray = TourChuaLichGanNhat_LonHonNgaHienTai.sort((a, b) => {
-          // Lấy giá trị startDate từ mỗi đối tượng
-          const startDayA = a.Calendar ? new Date(a.Calendar.startDay) : null;
-          const startDayB = b.Calendar ? new Date(b.Calendar.startDay) : null;
+          const startDayA = a.Calendars?.[0]?.startDay
+            ? new Date(a.Calendars[0].startDay)
+            : null;
 
-          // Xử lý trường hợp Calendar rỗng
-          if (!startDayA && !startDayB) {
-            return 0; // Nếu cả hai đều không có startDay, không cần sắp xếp
-          } else if (!startDayA) {
-            return 1; // Nếu startDay của a không xác định, đặt a ở sau b
-          } else if (!startDayB) {
-            return -1; // Nếu startDay của b không xác định, đặt a ở trước b
-          } else {
-            return startDayA - startDayB; // Sắp xếp theo thứ tự tăng dần của startDay
+          const startDayB = b.Calendars?.[0]?.startDay
+            ? new Date(b.Calendars[0].startDay)
+            : null;
+
+          if (!startDayA && startDayB) {
+            return 1;
+          } else if (startDayA && !startDayB) {
+            return -1;
+          } else if (!startDayA && !startDayB) return 0;
+          else {
+            return startDayA - startDayB;
           }
         });
       } else if (sortOrder == "DESC") {
         sortedArray = TourChuaLichGanNhat_LonHonNgaHienTai.sort((a, b) => {
-          // Lấy giá trị startDate từ mỗi đối tượng
-          const startDayA = a.Calendar ? new Date(a.Calendar.startDay) : null;
-          const startDayB = b.Calendar ? new Date(b.Calendar.startDay) : null;
+          const startDayA = a.Calendars?.[0]?.startDay
+            ? new Date(a.Calendars[0].startDay)
+            : null;
 
-          // Xử lý trường hợp Calendar rỗng
-          if (!startDayA && !startDayB) {
-            return 0; // Nếu cả hai đều không có startDay, không cần sắp xếp
-          } else if (!startDayA) {
-            return -1; // Nếu startDay của a không xác định, đặt a ở trước b
-          } else if (!startDayB) {
-            return 1; // Nếu startDay của b không xác định, đặt a ở sau b
-          } else {
-            return startDayB - startDayA; // Sắp xếp theo thứ tự giảm dần của startDay
+          const startDayB = b.Calendars?.[0]?.startDay
+            ? new Date(b.Calendars[0].startDay)
+            : null;
+
+          if (!startDayA && startDayB) {
+            return 1;
+          } else if (startDayA && !startDayB) {
+            return -1;
+          } else if (!startDayA && !startDayB) return 0;
+          else {
+            return startDayB - startDayA;
           }
         });
       }
@@ -401,7 +410,87 @@ const getToursFilter = async (rawData) => {
       return {
         EM: "Lấy dữ liệu thành công ",
         EC: 0,
-        DT: sortedArray,
+        DT: {
+          totalRows: tours.count,
+          tours: sortedArray,
+        },
+      };
+    }
+
+    if (sortBooking && sortOrder) {
+      const tours = await db.Tour.findAndCountAll({
+        raw: true,
+        nest: true,
+        where: whereCondition,
+      });
+
+      const tourPromiseArray = tours?.rows?.map(async (tour) => {
+        const Calendar = await db.Calendar.findAll({
+          raw: true,
+          nest: true,
+
+          where: {
+            startDay: {
+              [Op.gte]: new Date(),
+            },
+            ID_Tour: tour.id,
+          },
+          order: [["startDay", "ASC"]],
+          limit: 1,
+        });
+        const calendarNumberBooking = await db.BookingTour.findAndCountAll({
+          raw: true,
+          nest: true,
+
+          include: [
+            {
+              model: db.Calendar,
+              where: {
+                ID_Tour: tour.id,
+              },
+            },
+          ],
+        });
+        const numberBookingTour = calendarNumberBooking?.rows?.reduce(
+          (total, item) => {
+            return total + (item.numberTicketAdult + item.numberTicketChild);
+          },
+          0
+        );
+
+        return {
+          ...tour,
+          Calendars: Calendar,
+          booking: numberBookingTour,
+        };
+      });
+
+      const demsoDonDacTour = await Promise.all(tourPromiseArray);
+
+      let sortedArray = [];
+      if (sortOrder == "ASC") {
+        sortedArray = demsoDonDacTour.sort((a, b) => {
+          const numberBookingA = a ? a.booking : null;
+          const numberBookingB = b ? b.booking : null;
+
+          return numberBookingA - numberBookingB;
+        });
+      } else if (sortOrder == "DESC") {
+        sortedArray = demsoDonDacTour.sort((a, b) => {
+          const numberBookingA = a ? a.booking : null;
+          const numberBookingB = b ? b.booking : null;
+
+          return numberBookingB - numberBookingA;
+        });
+      }
+
+      return {
+        EM: "Lấy dữ liệu thành công ",
+        EC: 0,
+        DT: {
+          totalRows: tours.count,
+          tours: sortedArray,
+        },
       };
     }
 
