@@ -1,4 +1,4 @@
-import db from "../app/models";
+import db, { sequelize } from "../app/models";
 import BookingService from "./BookingService";
 const { Op } = require("sequelize");
 
@@ -328,38 +328,80 @@ const getToursFilter = async (rawData) => {
     }
 
     if (sortByDuration && sortOrder) {
-      options.order = [["numbeOfDay", sortOrder]];
+      options.order = [
+        [sequelize.literal("GREATEST(numbeOfDay, numberOfNight)"), sortOrder],
+      ];
     }
 
-    // LOI
     if (sortByStartDate && sortOrder) {
-      const options = {
-        where: whereCondition,
-        limit: limit ? parseInt(limit) : undefined,
-        offset: limit && page ? parseInt(offset) : undefined,
-        include: [
-          {
-            model: db.Calendar,
-            ...(startDay && {
-              where: {
-                startDay: {
-                  [Op.gte]: startDay,
-                },
-              },
-            }),
-          },
-          { model: db.ProcessTour },
-        ],
+      const tours = await db.Tour.findAndCountAll({
         raw: true,
         nest: true,
-      };
-      const { count, rows } = await db.Tour.findAndCountAll(options);
-      console.log("rows", rows);
+        where: whereCondition,
+      });
+
+      const tourPromiseArray = tours?.rows?.map(async (tour) => {
+        const Calendar = await db.Calendar.findOne({
+          where: {
+            startDay: {
+              [Op.gte]: new Date(),
+            },
+            ID_Tour: tour.id,
+          },
+          order: [["startDay", "ASC"]],
+        });
+
+        return {
+          ...tour,
+          Calendar: Calendar || {},
+        };
+      });
+
+      const TourChuaLichGanNhat_LonHonNgaHienTai = await Promise.all(
+        tourPromiseArray
+      );
+
+      let sortedArray = [];
+      if (sortOrder == "ASC") {
+        sortedArray = TourChuaLichGanNhat_LonHonNgaHienTai.sort((a, b) => {
+          // Lấy giá trị startDate từ mỗi đối tượng
+          const startDayA = a.Calendar ? new Date(a.Calendar.startDay) : null;
+          const startDayB = b.Calendar ? new Date(b.Calendar.startDay) : null;
+
+          // Xử lý trường hợp Calendar rỗng
+          if (!startDayA && !startDayB) {
+            return 0; // Nếu cả hai đều không có startDay, không cần sắp xếp
+          } else if (!startDayA) {
+            return 1; // Nếu startDay của a không xác định, đặt a ở sau b
+          } else if (!startDayB) {
+            return -1; // Nếu startDay của b không xác định, đặt a ở trước b
+          } else {
+            return startDayA - startDayB; // Sắp xếp theo thứ tự tăng dần của startDay
+          }
+        });
+      } else if (sortOrder == "DESC") {
+        sortedArray = TourChuaLichGanNhat_LonHonNgaHienTai.sort((a, b) => {
+          // Lấy giá trị startDate từ mỗi đối tượng
+          const startDayA = a.Calendar ? new Date(a.Calendar.startDay) : null;
+          const startDayB = b.Calendar ? new Date(b.Calendar.startDay) : null;
+
+          // Xử lý trường hợp Calendar rỗng
+          if (!startDayA && !startDayB) {
+            return 0; // Nếu cả hai đều không có startDay, không cần sắp xếp
+          } else if (!startDayA) {
+            return -1; // Nếu startDay của a không xác định, đặt a ở trước b
+          } else if (!startDayB) {
+            return 1; // Nếu startDay của b không xác định, đặt a ở sau b
+          } else {
+            return startDayB - startDayA; // Sắp xếp theo thứ tự giảm dần của startDay
+          }
+        });
+      }
 
       return {
         EM: "Lấy dữ liệu thành công ",
         EC: 0,
-        DT: rows,
+        DT: sortedArray,
       };
     }
 

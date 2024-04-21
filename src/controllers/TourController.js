@@ -1,7 +1,7 @@
 import TourService from "../services/TourService";
 
-class Tour {
-  // [POST] /api/v1/tour/create
+class Tour { 
+  // [POST] /api/v1/tour/create 
   async create(req, res) {
     try {
       const {
