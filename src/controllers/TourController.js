@@ -90,6 +90,7 @@ class Tour {
         type,
         startDay,
         status,
+        sortByStar,
         sortBooking,
         sortBycreatedAt,
         sortByPrice,

@@ -240,6 +240,7 @@ const getToursFilter = async (rawData) => {
     page,
     limit,
     type,
+    sortByStar,
     startDay,
     status,
     sortBooking,
@@ -258,12 +259,25 @@ const getToursFilter = async (rawData) => {
       whereCondition.id = +id;
     }
 
+    function removeAccentsAndLowerCase(str) {
+      return str
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+    }
     if (name) {
-      whereCondition.name = { [Op.like]: `%${name}%` };
+      const wordsToSearch = removeAccentsAndLowerCase(name)
+        .split(/\s+/)
+        .filter(Boolean);
+      const wordConditions = wordsToSearch.map((word) => ({
+        [Op.like]: `%${word}%`,
+      }));
+
+      whereCondition.name = { [Op.and]: wordConditions };
     }
 
     if (type) {
-      whereCondition.type = { [Op.like]: `%${type}%` };
+      whereCondition.type = { [Op.like]: `% ${type}% ` };
     }
 
     if (status) {
@@ -493,6 +507,70 @@ const getToursFilter = async (rawData) => {
         },
       };
     }
+
+    if (sortByStar && sortOrder) {
+      const tours = await db.Tour.findAndCountAll({
+        raw: true,
+        nest: true,
+        where: whereCondition,
+      });
+
+      const tourPromiseArray = tours?.rows?.map(async (tour) => {
+        const comments = await db.Comment.findAll({
+          raw: true,
+          nest: true,
+
+          where: {
+            ID_Tour: tour.id,
+          },
+        });
+
+        let totalStars = 0;
+        comments.forEach((comment) => {
+          totalStars += comment.star;
+        });
+
+        let averageStars = 0;
+        if (comments.length > 0) {
+          averageStars = totalStars / comments.length;
+        }
+
+        return {
+          ...tour,
+          averageStars: averageStars,
+        };
+      });
+
+      const sortStarTour = await Promise.all(tourPromiseArray);
+
+      let sortedArray = [];
+      if (sortOrder == "ASC") {
+        sortedArray = sortStarTour.sort((a, b) => {
+          const numberAverageStarsA = a ? a.averageStars : null;
+          const numberAverageStarsB = b ? b.averageStars : null;
+
+          return numberAverageStarsA - numberAverageStarsB;
+        });
+      } else if (sortOrder == "DESC") {
+        sortedArray = sortStarTour.sort((a, b) => {
+          const numberAverageStarsA = a ? a.averageStars : null;
+          const numberAverageStarsB = b ? b.averageStars : null;
+
+          return numberAverageStarsB - numberAverageStarsA;
+        });
+      }
+
+      return {
+        EM: "Lấy dữ liệu thành công ",
+        EC: 0,
+        DT: {
+          totalRows: tours.count,
+          tours: sortedArray,
+        },
+      };
+    }
+
+    console.log("options >>>>>>>>>>>>>>>>>>", options);
 
     const { count, rows } = await db.Tour.findAndCountAll(options);
 

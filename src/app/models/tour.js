@@ -23,6 +23,11 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: "id",
         foreignKey: "ID_Tour",
       });
+
+      Tour.hasMany(models.Comment, {
+        sourceKey: "id",
+        foreignKey: "ID_Tour",
+      });
     }
   }
   Tour.init(
@@ -32,7 +37,7 @@ module.exports = (sequelize, DataTypes) => {
       priceAdult: DataTypes.INTEGER,
       priceChild: DataTypes.INTEGER,
       numbeOfDay: DataTypes.INTEGER,
-      numberOfNight: DataTypes.INTEGER, 
+      numberOfNight: DataTypes.INTEGER,
       image: DataTypes.STRING,
       status: DataTypes.STRING,
       vehicle: DataTypes.STRING,

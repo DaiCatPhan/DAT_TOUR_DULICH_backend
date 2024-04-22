@@ -19,7 +19,7 @@ module.exports = (sequelize, DataTypes) => {
       });
       Customer.hasMany(models.Comment, {
         sourceKey: "id",
-        foreignKey: "ID_Customer",
+        foreignKey: "ID_Customer", 
       });
       Customer.hasMany(models.Message, {
         sourceKey: "id",

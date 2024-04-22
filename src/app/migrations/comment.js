@@ -12,9 +12,7 @@ module.exports = {
       ID_Customer: {
         type: Sequelize.INTEGER,
       },
-      ID_Blog: {
-        type: Sequelize.INTEGER,
-      },
+
       ID_Tour: {
         type: Sequelize.INTEGER,
       },
