@@ -89,6 +89,7 @@ class Tour {
         limit,
         type,
         startDay,
+        startDayEnd,
         status,
         sortByStar,
         sortBooking,

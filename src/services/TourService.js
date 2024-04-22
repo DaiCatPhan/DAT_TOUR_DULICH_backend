@@ -240,9 +240,10 @@ const getToursFilter = async (rawData) => {
     page,
     limit,
     type,
-    sortByStar,
     startDay,
+    startDayEnd,
     status,
+    sortByStar,
     sortBooking,
     sortByPrice,
     sortByStartDate,
@@ -265,6 +266,7 @@ const getToursFilter = async (rawData) => {
         .replace(/[\u0300-\u036f]/g, "")
         .toLowerCase();
     }
+
     if (name) {
       const wordsToSearch = removeAccentsAndLowerCase(name)
         .split(/\s+/)
@@ -277,47 +279,11 @@ const getToursFilter = async (rawData) => {
     }
 
     if (type) {
-      whereCondition.type = { [Op.like]: `% ${type}% ` };
+      whereCondition.type = { [Op.like]: `%${type}%` };
     }
 
     if (status) {
       whereCondition.status = status;
-    }
-
-    // LOI
-    if (startDay) {
-      const options = {
-        where: whereCondition,
-        limit: limit ? parseInt(limit) : undefined,
-        offset: limit && page ? parseInt(offset) : undefined,
-
-        include: [
-          {
-            model: db.Calendar,
-            where: {
-              startDay: {
-                [Op.gte]: startDay,
-              },
-            },
-            raw: true,
-            nest: true,
-          },
-          { model: db.ProcessTour, raw: true, nest: true },
-        ],
-      };
-
-      const { count, rows } = await db.Tour.findAndCountAll(options);
-
-      console.log("startDay", rows);
-      let data = {
-        totalRows: count,
-        tours: rows,
-      };
-      return {
-        EM: "Lấy dữ liệu thành công ",
-        EC: 0,
-        DT: data,
-      };
     }
 
     let options = {
@@ -330,9 +296,45 @@ const getToursFilter = async (rawData) => {
           raw: true,
           nest: true,
         },
-        { model: db.ProcessTour, raw: true, nest: true },
+        { model: db.ProcessTour, raw: true, nest: true }, 
       ],
     };
+
+    if (startDay || startDayEnd) {
+      const options = {
+        raw: true,
+        nest: true,
+        where: whereCondition,
+        limit: limit ? parseInt(limit) : undefined,
+        offset: limit && page ? parseInt(offset) : undefined,
+
+        include: [
+          {
+            model: db.Calendar,
+            where: {
+              startDay: {
+                [Op.between]: [startDay, startDayEnd], 
+              },
+            },
+            raw: true,
+            nest: true,
+          },
+          { model: db.ProcessTour, raw: true, nest: true },
+        ],
+      };
+
+      const { count, rows } = await db.Tour.findAndCountAll(options);
+
+      let data = {
+        totalRows: count,
+        tours: rows,
+      };
+      return {
+        EM: "Lấy dữ liệu thành công ",
+        EC: 0,
+        DT: data,
+      };
+    }
 
     if (sortBycreatedAt && sortOrder) {
       options.order = [["createdAt", sortOrder]];
