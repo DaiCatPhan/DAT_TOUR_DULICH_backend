@@ -136,7 +136,7 @@ class Booking {
         DT: [],
       });
     }
-  }
+  } 
   // [POST] /api/v1/booking/read
   async read(req, res) {
     const { ID_Customer, page, limit } = req.query;
@@ -166,10 +166,10 @@ class Booking {
   }
   // [POST] /api/v1/booking/readAll
   async readAll(req, res) {
-    const { payment_status, status, page, limit } = req.query;
+    const {  idBookingTour , nameTour , dayBookingTour , payment_status, status, page, limit } = req.query;
 
     try {
-      const data = await BookingService.readAllBooking(req.query);
+      const data = await BookingService.readAllBooking(req.query); 
       return res.status(200).json({
         EM: data.EM,
         EC: data.EC,

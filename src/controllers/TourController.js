@@ -52,7 +52,7 @@ class Tour {
   // [GET] /api/v1/tour/read
   async read(req, res) {
     try {
-      const { id, sortCalendar, numberCalenadar, getAll } = req.query;
+      const { id, sortStartDayCalendar, numberCalenadar, getAll } = req.query;
 
       if (!id) {
         return res.status(200).json({

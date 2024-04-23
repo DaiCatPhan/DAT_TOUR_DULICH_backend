@@ -1,5 +1,6 @@
 import db from "../app/models";
 const { Op } = require("sequelize");
+import moment from "moment";
 
 // Đêm coi cái lịch đó có bao nhiều người đặt rồi ???? thêm điều kiện là != trạng thái đã hủy
 const countBookingTourByIdCalendar = async (ID_Calendar) => {
@@ -250,7 +251,21 @@ const readBooking = async (rawData) => {
 
 const readAllBooking = async (rawData) => {
   try {
-    const { payment_status, status, page, limit } = rawData;
+    const {
+      idBookingTour,
+      nameTour,
+      dayBookingTour,
+      payment_status,
+      status,
+      page,
+      limit,
+    } = rawData;
+
+    console.log(
+      'moment(dayBookingTour).format("YYYY-MM-DD")',
+      moment(dayBookingTour).format("YYYY-MM-DD")
+    );
+
     let offset = (page - 1) * +limit;
 
     const condition = {};
@@ -260,6 +275,43 @@ const readAllBooking = async (rawData) => {
     if (payment_status) {
       condition.payment_status = payment_status;
     }
+    if (idBookingTour) {
+      condition.id = idBookingTour;
+    }
+    if (dayBookingTour) {
+      // Lấy ngày bắt đầu của ngày được chỉ định
+      const startOfDay = new Date(dayBookingTour);
+      startOfDay.setHours(0, 0, 0, 0); // Đặt giờ, phút, giây và millisecond về 0
+
+      // Lấy ngày kết thúc của ngày được chỉ định
+      const endOfDay = new Date(dayBookingTour);
+      endOfDay.setHours(23, 59, 59, 999); // Đặt giờ, phút, giây và millisecond tới cuối ngày
+
+      // Thêm điều kiện tìm kiếm để createdAt nằm trong phạm vi của ngày được chỉ định
+      condition.createdAt = {
+        [Op.between]: [startOfDay, endOfDay],
+      };
+    }
+
+    function removeAccentsAndLowerCase(str) {
+      return str
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+    }
+
+    if (nameTour) {
+      const wordsToSearch = removeAccentsAndLowerCase(nameTour)
+        .split(/\s+/)
+        .filter(Boolean);
+      const wordConditions = wordsToSearch.map((word) => ({
+        [Op.like]: `%${word}%`,
+      }));
+      // Thêm điều kiện tìm kiếm theo nameTour trong bảng Tour
+      condition["$Calendar.Tour.name$"] = { [Op.and]: wordConditions };
+    }
+
+    console.log("condition", condition);
 
     const data = await db.BookingTour.findAndCountAll({
       where: condition,
@@ -277,48 +329,11 @@ const readAllBooking = async (rawData) => {
       offset: limit && page ? parseInt(offset) : undefined,
     });
 
-    const Soluong_ChoXacNhan = await db.BookingTour.findAndCountAll({
-      where: {
-        status: "CHỜ XÁC NHẬN",
-      },
-    });
-    const Soluong_DaDuyet = await db.BookingTour.findAndCountAll({
-      where: {
-        status: "ĐÃ DUYỆT",
-      },
-    });
-    const Soluong_ChoHuy = await db.BookingTour.findAndCountAll({
-      where: {
-        status: "CHỜ HỦY",
-      },
-    });
-    const Soluong_DaHuy = await db.BookingTour.findAndCountAll({
-      where: {
-        status: "ĐÃ HỦY",
-      },
-    });
-    const Soluong_ChuaThanhToan = await db.BookingTour.findAndCountAll({
-      where: {
-        status: "ĐÃ DUYỆT",
-        payment_status: "ĐÃ THANH TOÁN",
-      },
-    });
-
-    data.numberStatus = {
-      Soluong_ChoXacNhan: Soluong_ChoXacNhan.count,
-      Soluong_DaDuyet: Soluong_DaDuyet.count,
-      Soluong_ChoHuy: Soluong_ChoHuy.count,
-      Soluong_DaHuy: Soluong_DaHuy.conut,
-      Soluong_ChuaThanhToan: Soluong_ChuaThanhToan.count,
+    return {
+      EM: "Lấy dữ liệu thành công ",
+      EC: 0,
+      DT: data,
     };
-
-    if (data) {
-      return {
-        EM: "Lấy dữ liệu thành công ",
-        EC: 0,
-        DT: data,
-      };
-    }
   } catch (err) {
     console.log(">> loi", err);
     return {
@@ -599,7 +614,7 @@ const createBookingVNPAY = async (rawData) => {
     condition.cancel_booking = "0";
     condition.payment_method = "ONLINE";
     condition.payment_status = "CHƯA THANH TOÁN";
-    condition.status = "CHỜ XÁC NHẬN";
+    condition.status = "ĐÃ DUYỆT";
 
     let data = await db.BookingTour.create(condition);
 

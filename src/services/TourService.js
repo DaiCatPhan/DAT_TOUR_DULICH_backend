@@ -249,7 +249,7 @@ const getToursFilter = async (rawData) => {
     sortByStartDate,
     sortByDuration,
     sortBycreatedAt,
-    sortOrder,
+    sortOrder, 
   } = rawData;
 
   try {
@@ -296,11 +296,11 @@ const getToursFilter = async (rawData) => {
           raw: true,
           nest: true,
         },
-        { model: db.ProcessTour, raw: true, nest: true }, 
+        { model: db.ProcessTour, raw: true, nest: true },
       ],
     };
 
-    if (startDay || startDayEnd) {
+    if (startDay && startDayEnd) {
       const options = {
         raw: true,
         nest: true,
@@ -313,7 +313,7 @@ const getToursFilter = async (rawData) => {
             model: db.Calendar,
             where: {
               startDay: {
-                [Op.between]: [startDay, startDayEnd], 
+                [Op.between]: [startDay, startDayEnd],
               },
             },
             raw: true,
@@ -633,28 +633,22 @@ const remainingSeats = async (ID_Calendar) => {
 };
 
 const getTourDetailById = async (rawData) => {
-  const { id, sortCalendar, numberCalenadar, getAll } = rawData;
+  const { id, sortStartDayCalendar, numberCalenadar, getAll } = rawData;
   try {
-    let dataTour = await db.Tour.findOne({
+    let Tour = await db.Tour.findOne({
       where: {
         id: id,
       },
       include: [
         {
           model: db.ProcessTour,
+          raw: true,
+          nest: true,
         },
       ],
       raw: true,
       nest: true,
     });
-
-    if (!dataTour) {
-      return {
-        EM: "Tour không tồn tại !!!",
-        EC: -2,
-        DT: [],
-      };
-    }
 
     let options = {
       where: {
@@ -664,30 +658,27 @@ const getTourDetailById = async (rawData) => {
       nest: true,
     };
     // Sắp xếp
-    if (sortCalendar === "ASC" || sortCalendar === "DESC") {
-      options.order = [["startDay", sortCalendar]];
+    if (sortStartDayCalendar) {
+      options.order = [["startDay", sortStartDayCalendar]];
     }
     // Lấy số lịch của tour đó là bao nhiêu
     if (numberCalenadar) {
       options.limit = +numberCalenadar;
     }
-    let dataTourCalendar = await db.Calendar.findAll(options);
 
     // Lấy hết tích or lấy lịch lớn hơn nhày hiện tại
-    if (getAll && getAll == "false") {
-      const currentDate = new Date();
-      const filteredCalendar = dataTourCalendar.filter((item) => {
-        const startDate = new Date(item.startDay);
-        return startDate > currentDate;
-      });
-      dataTour.Calendars = filteredCalendar;
-    } else {
-      dataTour.Calendars = dataTourCalendar;
+    if (getAll != "true") {
+      options.startDay = {
+        [Op.gte]: new Date(),
+      };
     }
 
+    const Calendar = await db.Calendar.findAll(options);
+    Tour.Calendars = Calendar;
+
     // Tính số chỗ còn lại
-    if (dataTour) {
-      const handleCalendarPromise = dataTour.Calendars.map(async (item) => {
+    if (Tour) {
+      const handleCalendarPromise = Tour.Calendars.map(async (item) => {
         const sochoConali = await remainingSeats(item.id);
         return {
           ...item,
@@ -695,12 +686,12 @@ const getTourDetailById = async (rawData) => {
         };
       });
       const result = await Promise.all(handleCalendarPromise);
-      dataTour.Calendars = result;
+      Tour.Calendars = result;
 
       return {
         EM: "Lấy dữ liệu thành công ",
         EC: 0,
-        DT: dataTour,
+        DT: Tour,
       };
     }
   } catch (error) {

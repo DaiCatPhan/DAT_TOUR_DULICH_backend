@@ -9,10 +9,14 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
- 
-      title : { type: Sequelize.STRING }, 
-      contentHTML  : { type: Sequelize.TEXT },  
-      contentTEXT  : { type: Sequelize.TEXT },  
+
+      ID_Customer: { type: Sequelize.INTEGER },
+
+      title: { type: Sequelize.STRING },
+      contentHTML: { type: Sequelize.TEXT },
+      contentTEXT: { type: Sequelize.TEXT },
+
+      status: { type: Sequelize.STRING },
 
       createdAt: { type: Sequelize.DATE },
       updatedAt: { type: Sequelize.DATE },
