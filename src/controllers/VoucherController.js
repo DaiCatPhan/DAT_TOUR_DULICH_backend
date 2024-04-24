@@ -77,7 +77,15 @@ class Voucher {
 
   // [GET] /api/v1/voucher/readAll
   async readAllVoucher(req, res) {
-    const { typeVoucher, nameVoucher, fromDate, page, limit } = req.query;
+    const {
+      typeVoucher,
+      nameVoucher,
+      fromDate,
+      page, 
+      limit,
+      expired,
+      sortCreatedAt,
+    } = req.query;
 
     try {
       const data = await VoucherService.readAll_Voucher(req.query);
@@ -130,11 +138,11 @@ class Voucher {
 
     if (!id) {
       return res.status(200).json({
-        EM: "Nhập thiếu trường dữ liệu !!!", 
+        EM: "Nhập thiếu trường dữ liệu !!!",
         EC: -2,
         DT: [],
       });
-    } 
+    }
 
     try {
       const data = await VoucherService.read_VoucherUser(req.query);
@@ -155,5 +163,3 @@ class Voucher {
 }
 
 export default new Voucher();
-
- 
