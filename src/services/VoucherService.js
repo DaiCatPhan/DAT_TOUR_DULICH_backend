@@ -1,3 +1,4 @@
+import { Op } from "sequelize";
 import db from "../app/models";
 import moment from "moment";
 
@@ -63,7 +64,15 @@ const create_Voucher = async (rawData) => {
   }
 };
 const readAll_Voucher = async (rawData) => {
-  const { typeVoucher, nameVoucher, fromDate, page, limit } = rawData;
+  const {
+    typeVoucher,
+    nameVoucher,
+    fromDate,
+    page,
+    limit,
+    expired,
+    sortCreatedAt,
+  } = rawData;
 
   try {
     const offset = (page - 1) * limit;
@@ -85,17 +94,24 @@ const readAll_Voucher = async (rawData) => {
       };
     }
 
+    if (expired == "true") {
+      whereCondition.toDate = {
+        [Op.gte]: new Date(),
+      };
+    }
+
+    if (expired == "false") {
+      whereCondition.toDate = {
+        [Op.lt]: new Date(),
+      };
+    }
+
     const options = {
+      raw: true,
+      nest: true,
       where: whereCondition,
       limit: limit ? parseInt(limit) : undefined,
       offset: limit && page ? parseInt(offset) : undefined,
-      order: [["createdAt", "DESC"]],
-      //   include: [
-      //     {
-      //       model: db.Calendar,
-      //     },
-      //     { model: db.ProcessTour },
-      //   ],
     };
 
     const { count, rows } = await db.Voucher.findAndCountAll(options);
@@ -103,10 +119,29 @@ const readAll_Voucher = async (rawData) => {
       totalRows: count,
       vouchers: rows,
     };
+
+    const dataResult = data?.vouchers?.map(async (voucher) => {
+      const voucherSaved = await db.VoucherUser.findAndCountAll({
+        where: {
+          ID_Voucher: voucher.id,
+        },
+      });
+      const voucherRemaining = +voucher.amount - +voucherSaved.count;
+      return {
+        ...voucher,
+        voucherRemaining: voucherRemaining,
+      };
+    });
+
+    const dataResultPromise = await Promise.all(dataResult);
+
     return {
       EM: "Lấy dữ liệu thành công ",
       EC: 0,
-      DT: data,
+      DT: {
+        totalRows: data?.totalRows,
+        vouchers: dataResultPromise,
+      },
     };
   } catch (err) {
     console.log(">> loi", err);
@@ -186,6 +221,22 @@ const create_VoucherUser = async (rawData) => {
         DT: [],
       };
     }
+
+    // XEM NÓ CÒN SLOT K
+    const voucherSaved = await db.VoucherUser.findAndCountAll({
+      where: {
+        ID_Voucher: ID_Voucher,
+      },
+    });
+    const voucherRemaining = +exitVoucher.amount - +voucherSaved.count;
+    if (voucherRemaining < 1) {
+      return {
+        EM: "Voucher đã hết slot !!!",
+        EC: -2,
+        DT: [],
+      };
+    }
+
     const exitUser = await db.Customer.findByPk(+ID_Customer);
     if (!exitUser) {
       return {

@@ -221,6 +221,7 @@ class Booking {
       ID_Voucher,
       numberTicketAdult,
       numberTicketChild,
+      user,
     } = req.body;
     if (!ID_Calendar || !ID_Customer || !numberTicketAdult) {
       return res.status(200).json({

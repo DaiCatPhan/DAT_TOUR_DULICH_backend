@@ -261,11 +261,6 @@ const readAllBooking = async (rawData) => {
       limit,
     } = rawData;
 
-    console.log(
-      'moment(dayBookingTour).format("YYYY-MM-DD")',
-      moment(dayBookingTour).format("YYYY-MM-DD")
-    );
-
     let offset = (page - 1) * +limit;
 
     const condition = {};
@@ -366,14 +361,6 @@ const readAllFailBooking = async (rawData) => {
         },
       },
     });
-
-    console.log("CalendarBefore5Day", CalendarBefore5Day);
-
-    // const bookingBefore5Day = await db.BookingTour.findAndCountAll({
-    //   where: {
-
-    //   }
-    // })
 
     return {
       EM: "Lấy dữ liệu thành công ",
@@ -562,9 +549,27 @@ const createBookingVNPAY = async (rawData) => {
     ID_Voucher,
     numberTicketAdult,
     numberTicketChild,
+    user,
   } = rawData;
-
   try {
+    const Customer = await db.Customer.findByPk(ID_Customer, {
+      raw: true,
+      nest: true,
+    });
+
+    if (!Customer) {
+      return {
+        EM: "Khách hàng không tồn tại",
+        EC: -2,
+        DT: [],
+      };
+    }
+
+    await db.Customer.update(
+      { username: user.username, phone: user.phone },
+      { where: { id: ID_Customer } }
+    );
+
     const Calendar = await db.Calendar.findByPk(ID_Calendar, {
       raw: true,
       nest: true,
@@ -574,15 +579,6 @@ const createBookingVNPAY = async (rawData) => {
         },
       ],
     });
-    const Customer = await db.Customer.findByPk(ID_Customer, { raw: true });
-
-    if (!Customer) {
-      return {
-        EM: "Khách hàng không tồn tại",
-        EC: -2,
-        DT: [],
-      };
-    }
 
     if (!Calendar) {
       return {
@@ -659,7 +655,7 @@ const createBookingVNPAY = async (rawData) => {
     condition.remaining_money = 0;
     condition.cancel_booking = "0";
     condition.payment_method = "ONLINE";
-    condition.payment_status = "CHƯA THANH TOÁN";
+    condition.payment_status = "ĐÃ THANH TOÁN";
     condition.status = "ĐÃ DUYỆT";
 
     let data = await db.BookingTour.create(condition);
