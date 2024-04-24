@@ -10,7 +10,7 @@ class Tour {
         priceAdult,
         priceChild,
         numbeOfDay,
-        numberOfNight,
+        numberOfNight, 
         status,
         vehicle,
       } = req.body;

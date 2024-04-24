@@ -13,12 +13,36 @@ const create_Voucher = async (rawData) => {
     nameVoucher,
   } = rawData;
 
+  // Kiểm tra startDay phải lớn hơn hoặc bằng ngày hiện tại
+
+  const startDateTime = new Date(fromDate);
+  const endDateTime = new Date(toDate);
+
+  const currentDateTime = new Date();
+
+  if (startDateTime < currentDateTime) {
+    return {
+      EM: "Ngày bắt đầu phải lớn hơn hoặc bằng ngày hiện tại",
+      EC: -3,
+      DT: [],
+    };
+  }
+
+  // Kiểm tra endDay phải lớn hơn hoặc bằng ngày startDay
+  if (endDateTime < startDateTime) {
+    return {
+      EM: "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu",
+      EC: -3,
+      DT: [],
+    };
+  }
+
   try {
     const data = await db.Voucher.create({
       typeVoucher: typeVoucher,
       value: value,
-      fromDate: moment(fromDate).format("YYYY-MM-DD"),
-      toDate: moment(toDate).format("YYYY-MM-DD"),
+      fromDate: startDateTime,
+      toDate: endDateTime,
       amount: amount,
       remainAmount: amount,
       nameVoucher: nameVoucher,

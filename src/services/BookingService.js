@@ -1,4 +1,4 @@
-import db from "../app/models";
+import db, { sequelize } from "../app/models";
 const { Op } = require("sequelize");
 import moment from "moment";
 
@@ -344,6 +344,52 @@ const readAllBooking = async (rawData) => {
   }
 };
 
+const readAllFailBooking = async (rawData) => {
+  try {
+    const { page, limit } = rawData;
+
+    let offset = (page - 1) * +limit;
+
+    const today = new Date();
+    const fiveDaysAgo = new Date(today);
+    fiveDaysAgo.setDate(today.getDate() - 5);
+
+    console.log("today", today);
+    console.log("fiveDaysAgo2", fiveDaysAgo);
+
+    const CalendarBefore5Day = await db.Calendar.findAndCountAll({
+      raw: true,
+      nest: true,
+      where: {
+        startDay: {
+          [Op.lt]: fiveDaysAgo, // Lọc các lịch tour có startDay trước ngày hiện tại 5 ngày
+        },
+      },
+    });
+
+    console.log("CalendarBefore5Day", CalendarBefore5Day);
+
+    // const bookingBefore5Day = await db.BookingTour.findAndCountAll({
+    //   where: {
+
+    //   }
+    // })
+
+    return {
+      EM: "Lấy dữ liệu thành công ",
+      EC: 0,
+      DT: CalendarBefore5Day,
+    };
+  } catch (err) {
+    console.log(">> loi", err);
+    return {
+      EM: "Loi server !!!",
+      EC: -5,
+      DT: [],
+    };
+  }
+};
+
 const createCancelBooking = async (rawData) => {
   const { id, date_cancel_booking, reason_cancel_booking } = rawData;
 
@@ -644,4 +690,5 @@ export default {
   createCancelBooking,
   createBookingVNPAY,
   updatePaid,
+  readAllFailBooking,
 };

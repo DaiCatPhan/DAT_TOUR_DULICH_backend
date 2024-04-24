@@ -1,6 +1,13 @@
 import db from "../app/models";
 import moment from "moment";
 
+const max = (a, b) => {
+  if (a > b) {
+    return a;
+  }
+  return b;
+};
+
 const createCalender = async (rawData) => {
   try {
     const {
@@ -13,8 +20,8 @@ const createCalender = async (rawData) => {
       status,
     } = rawData;
 
-    const exitTour = await db.Tour.findByPk(ID_Tour);
-    if (!exitTour) {
+    const tour = await db.Tour.findByPk(ID_Tour, { raw: true, nest: true });
+    if (!tour) {
       return {
         EM: "Tour không tồn tại !!! ",
         EC: -2,
@@ -24,7 +31,9 @@ const createCalender = async (rawData) => {
 
     // Kiểm tra startDay phải lớn hơn hoặc bằng ngày hiện tại
 
-    const startDateTime = startDay;
+    const startDateTime = new Date(startDay);
+    const endDateTime = new Date(endDay);
+
     const currentDateTime = new Date();
 
     if (startDateTime < currentDateTime) {
@@ -36,9 +45,26 @@ const createCalender = async (rawData) => {
     }
 
     // Kiểm tra endDay phải lớn hơn hoặc bằng ngày startDay
-    if (endDay < startDay) {
+    if (endDateTime < startDateTime) {
       return {
         EM: "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu",
+        EC: -3,
+        DT: [],
+      };
+    }
+
+    const numbeOfDayTour = tour?.numbeOfDay;
+    const numberOfNightTour = tour?.numberOfNight;
+    const durationTour = max(numbeOfDayTour, numberOfNightTour);
+
+    const calculatedEndDate = new Date(startDay);
+
+    calculatedEndDate.setDate(calculatedEndDate.getDate() + (durationTour - 1));
+
+    // So sánh ngày kết thúc tính toán được với ngày kết thúc của lịch
+    if (calculatedEndDate.toISOString() !== new Date(endDay).toISOString()) {
+      return {
+        EM: "Ngày kết thúc không phù hợp với số ngày của tour.",
         EC: -3,
         DT: [],
       };
@@ -47,11 +73,11 @@ const createCalender = async (rawData) => {
     const dataCreate = {
       ID_Tour: ID_Tour,
       numberSeat: numberSeat,
-      startDay: moment(startDay).format("YYYY-MM-DD"),
-      endDay: moment(endDay).format("YYYY-MM-DD"),
+      startDay: startDateTime,
+      endDay: endDateTime,
       priceAdult: priceAdult,
       priceChild: priceChild,
-      status: status,
+      status: "1",
     };
 
     const dataCalendar = await db.Calendar.create(dataCreate);

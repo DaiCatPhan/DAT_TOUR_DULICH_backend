@@ -8,6 +8,7 @@ router.put("/update", BookingController.update);
 router.put("/updatePaid", BookingController.updatePaid);
 router.get("/read", BookingController.read);
 router.get("/readAll", BookingController.readAll);
+router.get("/readAllFailBooking", BookingController.readAllFailBooking);
 
 //[POST] /payment/vnpay/create_payment_url
 router.post(
