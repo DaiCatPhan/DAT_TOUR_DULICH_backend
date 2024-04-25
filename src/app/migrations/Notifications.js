@@ -16,7 +16,7 @@ module.exports = {
       contentHTML: { type: Sequelize.TEXT },
       contentTEXT: { type: Sequelize.TEXT },
 
-      status: { type: Sequelize.STRING },
+      read: { type: Sequelize.STRING },
 
       createdAt: { type: Sequelize.DATE },
       updatedAt: { type: Sequelize.DATE },

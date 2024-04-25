@@ -21,7 +21,7 @@ module.exports = (sequelize, DataTypes) => {
       title: DataTypes.STRING,
       contentHTML: DataTypes.TEXT,
       contentTEXT: DataTypes.TEXT,
-      status: DataTypes.STRING,
+      read: DataTypes.STRING,
     },
     {
       sequelize,

@@ -1,4 +1,5 @@
-import db, { sequelize } from "../app/models";
+import { raw } from "express";
+import db, { Sequelize, sequelize } from "../app/models";
 const { Op } = require("sequelize");
 import moment from "moment";
 
@@ -357,6 +358,7 @@ const readAllFailBooking = async (rawData) => {
         startDay: {
           [Op.lt]: fiveDaysAgo,
         },
+        status: "1",
       },
     });
 
@@ -367,6 +369,16 @@ const readAllFailBooking = async (rawData) => {
         where: {
           ID_Calendar: calendar?.id,
         },
+        include: [
+          {
+            model: db.Customer,
+            raw: true,
+            nest: true,
+            attributes: {
+              exclude: ["createdAt", "updatedAt", "refresh_token", "password"],
+            },
+          },
+        ],
       });
 
       return {
@@ -376,23 +388,52 @@ const readAllFailBooking = async (rawData) => {
     });
 
     const resultTestPromist = await Promise.all(resultTest);
+
     const resultTestPromiseFilter = resultTestPromist.filter((calendar) => {
       return calendar?.booking?.count > 0;
     });
+
     const resultTestPromiseFilterLessThan10Ticket =
       resultTestPromiseFilter.filter((calendar) => {
         const totalTickets = +calendar?.booking?.rows?.reduce((total, item) => {
           return (total += item?.numberTicketAdult + item?.numberTicketChild);
         }, 0);
 
-        console.log("totalTickets", totalTickets);
+        calendar.totalTickets = totalTickets;
+
         return totalTickets < 10;
       });
+
+    const a = {};
+    resultTestPromiseFilterLessThan10Ticket.forEach((item) => {
+      const ID_Tour = item?.ID_Tour;
+      if (Object.keys(a).includes(ID_Tour.toString())) {
+        a[ID_Tour].push(item);
+      } else {
+        a[ID_Tour] = [item];
+      }
+    });
+
+    const arrayID_tour = Object.keys(a);
+    const arrayTour = arrayID_tour.map(async (idTour) => {
+      const tour = await db.Tour.findOne({
+        raw: true,
+        nest: true,
+        where: {
+          id: idTour,
+        },
+      });
+      return {
+        ...tour,
+        calendarFail: a[idTour],
+      };
+    });
+    const arrayTourPromist = await Promise.all(arrayTour);
 
     return {
       EM: "Lấy dữ liệu thành công ",
       EC: 0,
-      DT: resultTestPromiseFilterLessThan10Ticket,
+      DT: arrayTourPromist,
     };
   } catch (err) {
     console.log(">> loi", err);
@@ -428,9 +469,7 @@ const createCancelBooking = async (rawData) => {
     }
 
     condition.cancel_booking = 1;
-    condition.status = "Chờ hủy";
-
-    console.log("condition", condition);
+    condition.status = "ĐÃ HỦY";
 
     const data = await db.BookingTour.update(condition, {
       where: {
@@ -439,7 +478,7 @@ const createCancelBooking = async (rawData) => {
     });
 
     return {
-      EM: "Gửi yêu cầu hủy tour thành công ",
+      EM: "Hủy tour thành công ",
       EC: 0,
       DT: data,
     };
@@ -705,6 +744,83 @@ const createBookingVNPAY = async (rawData) => {
   }
 };
 
+const cancelCalendarandNotificationBooking = async (rawData) => {
+  const { booking, notification } = rawData;
+
+  try {
+    const ID_Calendar = rawData?.id;
+
+    const arr_IDBookingTour = booking?.rows?.map((booking) => {
+      return {
+        ID_IDBookingTour: booking?.id,
+      };
+    });
+    const arr_IDCustomer = booking?.rows?.map((customer) => {
+      return {
+        ID_Customer: customer?.ID_Customer,
+      };
+    });
+
+    console.log("ID_Calendar", ID_Calendar);
+    console.log("arr_IDBookingTour", arr_IDBookingTour);
+    console.log("arr_IDCustomer", arr_IDCustomer);
+    // Cập nhật cái lịch status lại 0
+    // Hủy cái đơn đặt tour đó
+    // Gửi thông báo cho tất cả khách hàng của đơn đó
+
+    await db.Calendar.update(
+      { status: "0" },
+      {
+        where: {
+          id: ID_Calendar,
+        },
+      }
+    );
+
+    const promisesUpdateBookingTour = arr_IDBookingTour.map(async (item) => {
+      return db.BookingTour.update(
+        {
+          status: "ĐÃ HỦY",
+          cancel_booking: "1",
+          date_cancel_booking: new Date(),
+          reason_cancel_booking: "Không đủ người cho lịch tour",
+        },
+        {
+          where: {
+            id: item?.ID_IDBookingTour,
+          },
+        }
+      );
+    });
+    await Promise.all(promisesUpdateBookingTour);
+
+    const promisesNotification = arr_IDCustomer.map(async (item) => {
+      return db.Notification.create({
+        ID_Customer: item.ID_Customer,
+        title: "HỦY TOUR",
+        contentHTML: notification?.reason_TEXT,
+        contentTEXT: notification?.reason_HTML,
+        read: "0",
+      });
+    });
+    // Chờ tất cả các promise được giải quyết
+    await Promise.all(promisesNotification);
+
+    return {
+      EM: "Gửi yêu cầu hủy tour thành công ",
+      EC: 0,
+      DT: [],
+    };
+  } catch (error) {
+    console.log(">>> error", error);
+    return {
+      EM: "Loi server !!!",
+      EC: -5,
+      DT: [],
+    };
+  }
+};
+
 export default {
   createBooking,
   updateBooking,
@@ -714,4 +830,5 @@ export default {
   createBookingVNPAY,
   updatePaid,
   readAllFailBooking,
+  cancelCalendarandNotificationBooking,
 };

@@ -354,6 +354,27 @@ class Booking {
       });
     }
   }
+
+  async cancelCalendarandNotificationBooking(req, res) {
+    const { data } = req.body; 
+    try {
+      const data = await BookingService.cancelCalendarandNotificationBooking(
+        req.body
+      );
+      return res.status(200).json({
+        EM: data.EM,
+        EC: data.EC,
+        DT: data.DT, 
+      });
+    } catch (err) {
+      console.log("err <<< ", err);
+      return res.status(500).json({
+        EM: "error server",
+        EC: -5,
+        DT: [],
+      });
+    }
+  }
 }
 
 function sortObject(obj) {
