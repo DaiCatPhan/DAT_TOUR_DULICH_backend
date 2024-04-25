@@ -347,25 +347,52 @@ const readAllFailBooking = async (rawData) => {
 
     const today = new Date();
     const fiveDaysAgo = new Date(today);
-    fiveDaysAgo.setDate(today.getDate() - 5);
+    fiveDaysAgo.setDate(today.getDate() + 5);
 
-    console.log("today", today);
-    console.log("fiveDaysAgo2", fiveDaysAgo);
-
+    // Lọc những lịch trước ngày đi 5 ngày
     const CalendarBefore5Day = await db.Calendar.findAndCountAll({
       raw: true,
       nest: true,
       where: {
         startDay: {
-          [Op.lt]: fiveDaysAgo, // Lọc các lịch tour có startDay trước ngày hiện tại 5 ngày
+          [Op.lt]: fiveDaysAgo,
         },
       },
     });
 
+    const resultTest = CalendarBefore5Day?.rows?.map(async (calendar) => {
+      const booking = await db.BookingTour.findAndCountAll({
+        raw: true,
+        nest: true,
+        where: {
+          ID_Calendar: calendar?.id,
+        },
+      });
+
+      return {
+        ...calendar,
+        booking: booking,
+      };
+    });
+
+    const resultTestPromist = await Promise.all(resultTest);
+    const resultTestPromiseFilter = resultTestPromist.filter((calendar) => {
+      return calendar?.booking?.count > 0;
+    });
+    const resultTestPromiseFilterLessThan10Ticket =
+      resultTestPromiseFilter.filter((calendar) => {
+        const totalTickets = +calendar?.booking?.rows?.reduce((total, item) => {
+          return (total += item?.numberTicketAdult + item?.numberTicketChild);
+        }, 0);
+
+        console.log("totalTickets", totalTickets);
+        return totalTickets < 10;
+      });
+
     return {
       EM: "Lấy dữ liệu thành công ",
       EC: 0,
-      DT: CalendarBefore5Day,
+      DT: resultTestPromiseFilterLessThan10Ticket,
     };
   } catch (err) {
     console.log(">> loi", err);
