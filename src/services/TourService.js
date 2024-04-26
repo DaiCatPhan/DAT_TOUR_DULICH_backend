@@ -233,6 +233,13 @@ const getTourWithPagination = async (rawData) => {
   }
 };
 
+function removeAccentsAndLowerCase(str) {
+  return str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
 const getToursFilter = async (rawData) => {
   const {
     id,
@@ -249,7 +256,7 @@ const getToursFilter = async (rawData) => {
     sortByStartDate,
     sortByDuration,
     sortBycreatedAt,
-    sortOrder, 
+    sortOrder,
   } = rawData;
 
   try {
@@ -258,13 +265,6 @@ const getToursFilter = async (rawData) => {
 
     if (id) {
       whereCondition.id = +id;
-    }
-
-    function removeAccentsAndLowerCase(str) {
-      return str
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase();
     }
 
     if (name) {
@@ -286,6 +286,17 @@ const getToursFilter = async (rawData) => {
       whereCondition.status = status;
     }
 
+    const conditionCalendar = {};
+    if (startDay) {
+      conditionCalendar.startDay = { [Op.gt]: startDay };
+    }
+
+    if (startDay && startDayEnd) {
+      conditionCalendar.startDay = {
+        [Op.and]: [{ [Op.gt]: startDay }, { [Op.lt]: startDayEnd }],
+      };
+    }
+
     let options = {
       where: whereCondition,
       limit: limit ? parseInt(limit) : undefined,
@@ -295,46 +306,10 @@ const getToursFilter = async (rawData) => {
           model: db.Calendar,
           raw: true,
           nest: true,
+          where: conditionCalendar,
         },
-        { model: db.ProcessTour, raw: true, nest: true },
       ],
     };
-
-    if (startDay && startDayEnd) {
-      const options = {
-        raw: true,
-        nest: true,
-        where: whereCondition,
-        limit: limit ? parseInt(limit) : undefined,
-        offset: limit && page ? parseInt(offset) : undefined,
-
-        include: [
-          {
-            model: db.Calendar,
-            where: {
-              startDay: {
-                [Op.between]: [startDay, startDayEnd],
-              },
-            },
-            raw: true,
-            nest: true,
-          },
-          { model: db.ProcessTour, raw: true, nest: true },
-        ],
-      };
-
-      const { count, rows } = await db.Tour.findAndCountAll(options);
-
-      let data = {
-        totalRows: count,
-        tours: rows,
-      };
-      return {
-        EM: "Lấy dữ liệu thành công ",
-        EC: 0,
-        DT: data,
-      };
-    }
 
     if (sortBycreatedAt && sortOrder) {
       options.order = [["createdAt", sortOrder]];
@@ -571,8 +546,6 @@ const getToursFilter = async (rawData) => {
         },
       };
     }
-
-    console.log("options >>>>>>>>>>>>>>>>>>", options);
 
     const { count, rows } = await db.Tour.findAndCountAll(options);
 

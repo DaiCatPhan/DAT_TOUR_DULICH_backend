@@ -307,7 +307,7 @@ const readAllBooking = async (rawData) => {
       condition["$Calendar.Tour.name$"] = { [Op.and]: wordConditions };
     }
 
-    console.log("condition", condition);
+    
 
     const data = await db.BookingTour.findAndCountAll({
       where: condition,
