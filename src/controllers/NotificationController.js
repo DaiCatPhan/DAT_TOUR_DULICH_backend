@@ -1,7 +1,7 @@
 import NotificationService from "../services/NotificationService";
 
 class Notification {
-  // [POST] /api/v1/message/createRoom
+  // [POST] /api/v1/notification/create
   async create(req, res) {
     const { ID_Customer, title, contentHTML, contentTEXT, status } = req.body;
 
@@ -15,6 +15,69 @@ class Notification {
 
     try {
       const data = await NotificationService.create(req.body);
+      return res.status(200).json({
+        EM: data.EM,
+        EC: data.EC,
+        DT: data.DT,
+      });
+    } catch (err) {
+      console.log("err <<< ", err);
+      return res.status(500).json({
+        EM: "error server", // error message
+        EC: -5, // error code
+        DT: [], // data
+      });
+    }
+  }
+
+  // [POST] /api/v1/notification/read
+  async read(req, res) {
+    const { ID_Customer, sortcreatedAt } = req.query;
+
+    try {
+      const data = await NotificationService.read(req.query);
+      return res.status(200).json({
+        EM: data.EM,
+        EC: data.EC,
+        DT: data.DT,
+      });
+    } catch (err) {
+      console.log("err <<< ", err);
+      return res.status(500).json({
+        EM: "error server", // error message
+        EC: -5, // error code
+        DT: [], // data
+      });
+    }
+  }
+
+  // [POST] /api/v1/notification/readID
+  async readID(req, res) {
+    const { ID_Notification } = req.query;
+
+    try {
+      const data = await NotificationService.readID(req.query);
+      return res.status(200).json({
+        EM: data.EM,
+        EC: data.EC,
+        DT: data.DT,
+      });
+    } catch (err) {
+      console.log("err <<< ", err);
+      return res.status(500).json({
+        EM: "error server", // error message
+        EC: -5, // error code
+        DT: [], // data
+      });
+    }
+  }
+
+  // [POST] /api/v1/notification/read
+  async readAll(req, res) {
+    const { ID_Customer } = req.query;
+
+    try {
+      const data = await NotificationService.read(req.query);
       return res.status(200).json({
         EM: data.EM,
         EC: data.EC,

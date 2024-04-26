@@ -9,15 +9,16 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      // Notification.hasMany(models.VoucherUser, {
-      //   sourceKey: "id",
-      //   foreignKey: "ID_Customer",
-      // });
+      Notification.belongsTo(models.Calendar, {
+        sourceKey: "id",
+        foreignKey: "ID_Calendar",
+      });
     }
   }
   Notification.init(
     {
       ID_Customer: DataTypes.INTEGER,
+      ID_Calendar: DataTypes.INTEGER,
       title: DataTypes.STRING,
       contentHTML: DataTypes.TEXT,
       contentTEXT: DataTypes.TEXT,

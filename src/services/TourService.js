@@ -184,6 +184,7 @@ const getTourWithPagination = async (rawData) => {
                 [Op.gte]: startDay,
               },
             },
+            status: "1",
           },
           { model: db.ProcessTour },
         ],
@@ -606,7 +607,8 @@ const remainingSeats = async (ID_Calendar) => {
 };
 
 const getTourDetailById = async (rawData) => {
-  const { id, sortStartDayCalendar, numberCalenadar, getAll } = rawData;
+  const { id, statusCalendar, sortStartDayCalendar, numberCalenadar, getAll } =
+    rawData;
   try {
     let Tour = await db.Tour.findOne({
       where: {
@@ -623,30 +625,37 @@ const getTourDetailById = async (rawData) => {
       nest: true,
     });
 
-    let options = {
+    const optionsCalendar = {
       where: {
         ID_Tour: id,
       },
       raw: true,
       nest: true,
     };
+
+    if (statusCalendar) {
+      optionsCalendar.where.status = statusCalendar;
+    }
+
     // Sắp xếp
     if (sortStartDayCalendar) {
-      options.order = [["startDay", sortStartDayCalendar]];
+      optionsCalendar.order = [["startDay", sortStartDayCalendar]];
     }
     // Lấy số lịch của tour đó là bao nhiêu
     if (numberCalenadar) {
-      options.limit = +numberCalenadar;
+      optionsCalendar.limit = +numberCalenadar;
     }
 
     // Lấy hết tích or lấy lịch lớn hơn nhày hiện tại
     if (getAll != "true") {
-      options.startDay = {
+      optionsCalendar.startDay = {
         [Op.gte]: new Date(),
       };
     }
 
-    const Calendar = await db.Calendar.findAll(options);
+    console.log("optionsCalendar", optionsCalendar);
+
+    const Calendar = await db.Calendar.findAll(optionsCalendar);
     Tour.Calendars = Calendar;
 
     // Tính số chỗ còn lại

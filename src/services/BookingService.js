@@ -307,8 +307,6 @@ const readAllBooking = async (rawData) => {
       condition["$Calendar.Tour.name$"] = { [Op.and]: wordConditions };
     }
 
-    
-
     const data = await db.BookingTour.findAndCountAll({
       where: condition,
       include: [
@@ -797,7 +795,8 @@ const cancelCalendarandNotificationBooking = async (rawData) => {
     const promisesNotification = arr_IDCustomer.map(async (item) => {
       return db.Notification.create({
         ID_Customer: item.ID_Customer,
-        title: "HỦY TOUR",
+        ID_Calendar: ID_Calendar,
+        title: "THÔNG BÁO HỦY TOUR",
         contentHTML: notification?.reason_TEXT,
         contentTEXT: notification?.reason_HTML,
         read: "0",

@@ -13,7 +13,7 @@ class Booking {
       numberTicketChild,
     } = req.body;
 
-    if (!ID_Calendar || !ID_Customer || !numberTicketAdult) {
+    if (!ID_Calendar || !ID_Customer || !numberTicketAdult) { 
       return res.status(200).json({
         EM: "Nhập thiếu trường dữ liệu !!!",
         EC: -2,
@@ -361,7 +361,7 @@ class Booking {
       const data = await BookingService.cancelCalendarandNotificationBooking(
         req.body
       );
-      return res.status(200).json({
+      return res.status(200).json({ 
         EM: data.EM,
         EC: data.EC,
         DT: data.DT, 
@@ -377,7 +377,7 @@ class Booking {
   }
 }
 
-function sortObject(obj) {
+function sortObject(obj) { 
   let sorted = {};
   let str = [];
   let key;
