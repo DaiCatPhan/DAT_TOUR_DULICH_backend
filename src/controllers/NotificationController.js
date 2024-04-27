@@ -72,12 +72,39 @@ class Notification {
     }
   }
 
-  // [POST] /api/v1/notification/read
+  // [POST] /api/v1/notification/readAll
   async readAll(req, res) {
     const { ID_Customer } = req.query;
 
     try {
       const data = await NotificationService.read(req.query);
+      return res.status(200).json({
+        EM: data.EM,
+        EC: data.EC,
+        DT: data.DT,
+      });
+    } catch (err) {
+      console.log("err <<< ", err);
+      return res.status(500).json({
+        EM: "error server", // error message
+        EC: -5, // error code
+        DT: [], // data
+      });
+    }
+  }
+
+  // [PUT] /api/v1/notification/update
+  async update(req, res) {
+    const { ID_Notification, read, title, contentHTML, contentTEXT } = req.body;
+    if (!ID_Notification) {
+      return res.status(200).json({
+        EM: "Thiếu dữ liệu !!!",
+        EC: -2,
+        DT: [],
+      });
+    }
+    try {
+      const data = await NotificationService.update(req.body);
       return res.status(200).json({
         EM: data.EM,
         EC: data.EC,

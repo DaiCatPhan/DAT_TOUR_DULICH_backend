@@ -110,4 +110,42 @@ const readAll = async (rawData) => {
     };
   }
 };
-export default { create, read, readAll, readID };
+
+const update = async (rawData) => {
+  const { ID_Notification, read, title, contentHTML, contentTEXT } = rawData;
+
+  try {
+    const condition = {};
+    if (read) {
+      condition.read = read;
+    }
+    if (title) {
+      condition.title = title;
+    }
+    if (contentHTML) {
+      condition.contentHTML = contentHTML;
+    }
+    if (contentTEXT) {
+      condition.contentTEXT = contentTEXT;
+    }
+    const data = await db.Notification.update(condition, {
+      where: {
+        id: ID_Notification,
+      },
+    });
+
+    return {
+      EM: "Update thông báo thành công ",
+      EC: 0,
+      DT: data,
+    };
+  } catch (error) {
+    console.log(">>> error", error);
+    return {
+      EM: "Loi server !!!",
+      EC: -5,
+      DT: [],
+    };
+  }
+};
+export default { create, read, readAll, readID, update };

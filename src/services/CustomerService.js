@@ -61,12 +61,18 @@ const readAllCustomer = async (rawData) => {
 };
 
 const readCustomer = async (rawData) => {
-  const { id } = rawData;
+  const { id, nameVoucher } = rawData;
 
   try {
     const whereCondition = {};
+    const whereConditionVoucher = {};
+
     if (id) {
       whereCondition.id = id;
+    }
+
+    if (nameVoucher) {
+      whereConditionVoucher.nameVoucher = { [Op.like]: `%${nameVoucher}%` };
     }
 
     const options = {
@@ -74,20 +80,16 @@ const readCustomer = async (rawData) => {
       include: [
         {
           model: db.VoucherUser,
-          include: { model: db.Voucher },
+          include: { model: db.Voucher, where: whereConditionVoucher },
+          where: {
+            status: 0,
+          },
         },
-        // { model: db.ProcessTour },
       ],
     };
 
     const data = await db.Customer.findOne(options);
-    if (!data) {
-      return {
-        EM: "Người dùng không tồn tại  ",
-        EC: -2,
-        DT: [],
-      };
-    }
+
     return {
       EM: "Lấy dữ liệu thành công ",
       EC: 0,

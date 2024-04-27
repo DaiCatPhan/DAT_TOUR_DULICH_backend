@@ -63,6 +63,7 @@ const create_Voucher = async (rawData) => {
     };
   }
 };
+
 const readAll_Voucher = async (rawData) => {
   const {
     typeVoucher,
@@ -71,7 +72,7 @@ const readAll_Voucher = async (rawData) => {
     page,
     limit,
     expired,
-    sortCreatedAt,
+    sortCreatedAt, 
   } = rawData;
 
   try {
@@ -284,16 +285,17 @@ const read_VoucherUser = async (rawData) => {
   const { id } = rawData;
 
   try {
-    const data = await db.VoucherUser.findAll({
+    const condition = {};
+    const data = await db.VoucherUser.findAll({ 
       where: {
         ID_Customer: id,
       },
       include: [
-        { model: db.Voucher },
+        { model: db.Voucher }, 
         {
           model: db.Customer,
-          attributes: {
-            exclude: ["createdAt", "updatedAt", "refresh_token", "password"],
+          attributes: { 
+            exclude: ["createdAt", "updatedAt", "refresh_token", "password"], 
           },
         },
       ],
@@ -332,5 +334,5 @@ export default {
   readAll_Voucher,
   update_Voucher,
   create_VoucherUser,
-  read_VoucherUser,
+  read_VoucherUser, 
 };

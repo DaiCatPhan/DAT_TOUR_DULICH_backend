@@ -25,7 +25,7 @@ class Customer {
   // [GET] /api/v1/customer/read
   async read(req, res) {
     try {
-      const { id } = req.query;
+      const { id, nameVoucher } = req.query;
 
       let data = await CustomerService.readCustomer(req.query);
       return res.status(200).json({
