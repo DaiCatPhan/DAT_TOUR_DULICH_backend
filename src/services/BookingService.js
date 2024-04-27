@@ -284,6 +284,9 @@ const readAllBooking = async (rawData) => {
       const endOfDay = new Date(dayBookingTour);
       endOfDay.setHours(23, 59, 59, 999); // Đặt giờ, phút, giây và millisecond tới cuối ngày
 
+      console.log("startOfDay", startOfDay);
+      console.log("endOfDay", endOfDay);
+
       // Thêm điều kiện tìm kiếm để createdAt nằm trong phạm vi của ngày được chỉ định
       condition.createdAt = {
         [Op.between]: [startOfDay, endOfDay],
@@ -816,6 +819,7 @@ const cancelCalendarandNotificationBooking = async (rawData) => {
       return db.BookingTour.update(
         {
           status: "ĐÃ HỦY",
+          payment_status: "HOÀN TIỀN",
           cancel_booking: "1",
           date_cancel_booking: new Date(),
           reason_cancel_booking: "Không đủ người cho lịch tour",
