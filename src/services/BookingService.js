@@ -257,6 +257,7 @@ const readAllBooking = async (rawData) => {
       nameTour,
       dayBookingTour,
       payment_status,
+      sortcreatedAt,
       status,
       page,
       limit,
@@ -307,7 +308,7 @@ const readAllBooking = async (rawData) => {
       condition["$Calendar.Tour.name$"] = { [Op.and]: wordConditions };
     }
 
-    const data = await db.BookingTour.findAndCountAll({
+    let options = {
       where: condition,
       include: [
         {
@@ -318,120 +319,21 @@ const readAllBooking = async (rawData) => {
         },
         { model: db.Calendar, include: { model: db.Tour } },
       ],
-      order: [["updatedAt", "ASC"]],
+
       limit: limit ? parseInt(limit) : undefined,
       offset: limit && page ? parseInt(offset) : undefined,
-    });
+    };
+
+    if (sortcreatedAt) {
+      options.order = [["createdAt", sortcreatedAt]];
+    }
+
+    const data = await db.BookingTour.findAndCountAll(options);
 
     return {
       EM: "Lấy dữ liệu thành công ",
       EC: 0,
       DT: data,
-    };
-  } catch (err) {
-    console.log(">> loi", err);
-    return {
-      EM: "Loi server !!!",
-      EC: -5,
-      DT: [],
-    };
-  }
-};
-
-const readAllFailBooking = async (rawData) => {
-  try {
-    const { page, limit } = rawData;
-
-    let offset = (page - 1) * +limit;
-
-    const today = new Date();
-    const fiveDaysAgo = new Date(today);
-    fiveDaysAgo.setDate(today.getDate() + 5);
-
-    // Lọc những lịch trước ngày đi 5 ngày
-    const CalendarBefore5Day = await db.Calendar.findAndCountAll({
-      raw: true,
-      nest: true,
-      where: {
-        startDay: {
-          [Op.lt]: fiveDaysAgo,
-        },
-        status: "1",
-      },
-    });
-
-    const resultTest = CalendarBefore5Day?.rows?.map(async (calendar) => {
-      const booking = await db.BookingTour.findAndCountAll({
-        raw: true,
-        nest: true,
-        where: {
-          ID_Calendar: calendar?.id,
-        },
-        include: [
-          {
-            model: db.Customer,
-            raw: true,
-            nest: true,
-            attributes: {
-              exclude: ["createdAt", "updatedAt", "refresh_token", "password"],
-            },
-          },
-        ],
-      });
-
-      return {
-        ...calendar,
-        booking: booking,
-      };
-    });
-
-    const resultTestPromist = await Promise.all(resultTest);
-
-    const resultTestPromiseFilter = resultTestPromist.filter((calendar) => {
-      return calendar?.booking?.count > 0;
-    });
-
-    const resultTestPromiseFilterLessThan10Ticket =
-      resultTestPromiseFilter.filter((calendar) => {
-        const totalTickets = +calendar?.booking?.rows?.reduce((total, item) => {
-          return (total += item?.numberTicketAdult + item?.numberTicketChild);
-        }, 0);
-
-        calendar.totalTickets = totalTickets;
-
-        return totalTickets < 10;
-      });
-
-    const a = {};
-    resultTestPromiseFilterLessThan10Ticket.forEach((item) => {
-      const ID_Tour = item?.ID_Tour;
-      if (Object.keys(a).includes(ID_Tour.toString())) {
-        a[ID_Tour].push(item);
-      } else {
-        a[ID_Tour] = [item];
-      }
-    });
-
-    const arrayID_tour = Object.keys(a);
-    const arrayTour = arrayID_tour.map(async (idTour) => {
-      const tour = await db.Tour.findOne({
-        raw: true,
-        nest: true,
-        where: {
-          id: idTour,
-        },
-      });
-      return {
-        ...tour,
-        calendarFail: a[idTour],
-      };
-    });
-    const arrayTourPromist = await Promise.all(arrayTour);
-
-    return {
-      EM: "Lấy dữ liệu thành công ",
-      EC: 0,
-      DT: arrayTourPromist,
     };
   } catch (err) {
     console.log(">> loi", err);
@@ -615,6 +517,9 @@ const createBookingVNPAY = async (rawData) => {
     numberTicketChild,
     user,
   } = rawData;
+
+  console.log("rawData", rawData);
+
   try {
     const Customer = await db.Customer.findByPk(ID_Customer, {
       raw: true,
@@ -677,7 +582,7 @@ const createBookingVNPAY = async (rawData) => {
       condition.numberTicketAdult = numberTicketAdult;
     }
     if (numberTicketChild) {
-      condition.numberTicketChild = numberTicketChild;
+      condition.numberTicketChild = numberTicketChild || 0;
     }
 
     //========================= Số tiền phải trả =============================
@@ -695,7 +600,10 @@ const createBookingVNPAY = async (rawData) => {
       const Voucher = await db.Voucher.findByPk(ID_Voucher, { raw: true });
       if (Voucher) {
         // Xử lý logic tính tiền sau khi áp dụng voucher
-        soTienPhaiTraSauVoucher = await applyVoucher(soTienPhaiTra, Voucher);
+        soTienPhaiTraSauVoucher = await applyVoucher(
+          soTienPhaiTraTruocVoucher,
+          Voucher
+        );
         if (soTienPhaiTraSauVoucher == 0) {
           return {
             EM: "Mã voucher đã hết hạn",
@@ -703,6 +611,19 @@ const createBookingVNPAY = async (rawData) => {
             DT: [],
           };
         }
+
+        // cập nhập voucher đã dùng
+        await db.VoucherUser.update(
+          {
+            status: 1,
+          },
+          {
+            where: {
+              id: ID_Voucher,
+              ID_Customer: ID_Customer,
+            },
+          }
+        );
       } else {
         return {
           EM: "Mã voucher không tồn tại",
@@ -719,7 +640,7 @@ const createBookingVNPAY = async (rawData) => {
     condition.remaining_money = 0;
     condition.cancel_booking = "0";
     condition.payment_method = "ONLINE";
-    condition.payment_status = "ĐÃ THANH TOÁN";
+    condition.payment_status = "CHƯA THANH TOÁN";
     condition.status = "ĐÃ DUYỆT";
 
     let data = await db.BookingTour.create(condition);
@@ -742,11 +663,134 @@ const createBookingVNPAY = async (rawData) => {
   }
 };
 
+// HỦY TOUR
+const readAllFailBooking = async (rawData) => {
+  try {
+    const { page, limit } = rawData;
+
+    let offset = (page - 1) * +limit;
+
+    const today = new Date();
+    const fiveDaysAgo = new Date(today);
+    fiveDaysAgo.setDate(today.getDate() + 5);
+
+    // Lọc những lịch trước ngày đi 5 ngày
+    const CalendarBefore5Day = await db.Calendar.findAndCountAll({
+      raw: true,
+      nest: true,
+      where: {
+        startDay: {
+          [Op.lt]: fiveDaysAgo,
+        },
+        status: "1",
+      },
+    });
+
+    const resultTest = CalendarBefore5Day?.rows?.map(async (calendar) => {
+      const booking = await db.BookingTour.findAndCountAll({
+        raw: true,
+        nest: true,
+        where: {
+          ID_Calendar: calendar?.id,
+        },
+        include: [
+          {
+            model: db.Customer,
+            raw: true,
+            nest: true,
+            attributes: {
+              exclude: ["createdAt", "updatedAt", "refresh_token", "password"],
+            },
+          },
+        ],
+      });
+
+      return {
+        ...calendar,
+        booking: booking,
+      };
+    });
+
+    const resultTestPromist = await Promise.all(resultTest);
+
+    const resultTestPromiseFilter = resultTestPromist.filter((calendar) => {
+      return calendar?.booking?.count >= 0;
+    });
+
+    const resultTestPromiseFilterLessThan10Ticket =
+      resultTestPromiseFilter.filter((calendar) => {
+        const totalTickets = +calendar?.booking?.rows?.reduce((total, item) => {
+          return (total += item?.numberTicketAdult + item?.numberTicketChild);
+        }, 0);
+
+        calendar.totalTickets = totalTickets;
+
+        return totalTickets < 10;
+      });
+
+    const a = {};
+    resultTestPromiseFilterLessThan10Ticket.forEach((item) => {
+      const ID_Tour = item?.ID_Tour;
+      if (Object.keys(a).includes(ID_Tour.toString())) {
+        a[ID_Tour].push(item);
+      } else {
+        a[ID_Tour] = [item];
+      }
+    });
+
+    const arrayID_tour = Object.keys(a);
+    const arrayTour = arrayID_tour.map(async (idTour) => {
+      const tour = await db.Tour.findOne({
+        raw: true,
+        nest: true,
+        where: {
+          id: idTour,
+        },
+      });
+      return {
+        ...tour,
+        calendarFail: a[idTour],
+      };
+    });
+    const arrayTourPromist = await Promise.all(arrayTour);
+
+    return {
+      EM: "Lấy dữ liệu thành công ",
+      EC: 0,
+      DT: arrayTourPromist,
+    };
+  } catch (err) {
+    console.log(">> loi", err);
+    return {
+      EM: "Loi server !!!",
+      EC: -5,
+      DT: [],
+    };
+  }
+};
+
 const cancelCalendarandNotificationBooking = async (rawData) => {
   const { booking, notification } = rawData;
 
   try {
+    //
     const ID_Calendar = rawData?.id;
+
+    if (booking?.count == 0) {
+      await db.Calendar.update(
+        { status: "0" },
+        {
+          where: {
+            id: ID_Calendar,
+          },
+        }
+      );
+      return {
+        EM: "Cập nhật lịch tour thành công ",
+        EC: 0,
+        DT: [],
+      };
+    }
 
     const arr_IDBookingTour = booking?.rows?.map((booking) => {
       return {
@@ -758,13 +802,6 @@ const cancelCalendarandNotificationBooking = async (rawData) => {
         ID_Customer: customer?.ID_Customer,
       };
     });
-
-    console.log("ID_Calendar", ID_Calendar);
-    console.log("arr_IDBookingTour", arr_IDBookingTour);
-    console.log("arr_IDCustomer", arr_IDCustomer);
-    // Cập nhật cái lịch status lại 0
-    // Hủy cái đơn đặt tour đó
-    // Gửi thông báo cho tất cả khách hàng của đơn đó
 
     await db.Calendar.update(
       { status: "0" },
@@ -806,7 +843,7 @@ const cancelCalendarandNotificationBooking = async (rawData) => {
     await Promise.all(promisesNotification);
 
     return {
-      EM: "Gửi yêu cầu hủy tour thành công ",
+      EM: "Gửi yêu cầu hủy tour và thông báo cho khách hàng thành công ",
       EC: 0,
       DT: [],
     };

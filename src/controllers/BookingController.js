@@ -13,7 +13,7 @@ class Booking {
       numberTicketChild,
     } = req.body;
 
-    if (!ID_Calendar || !ID_Customer || !numberTicketAdult) { 
+    if (!ID_Calendar || !ID_Customer || !numberTicketAdult) {
       return res.status(200).json({
         EM: "Nhập thiếu trường dữ liệu !!!",
         EC: -2,
@@ -174,6 +174,7 @@ class Booking {
       status,
       page,
       limit,
+      sortcreatedAt,
     } = req.query;
 
     try {
@@ -233,7 +234,6 @@ class Booking {
 
     try {
       const data = await BookingService.createBookingVNPAY(req.body);
-      console.log("data", data);
       req.dataBooking = data;
       next();
     } catch (err) {
@@ -249,8 +249,10 @@ class Booking {
   async handleCreatePaymentVnpayUrl(req, res) {
     const dataBooking = req.dataBooking;
 
+    console.log("dataBooking", dataBooking);
+
     try {
-      const data = dataBooking.DT;
+      const data = dataBooking.DT.id;
       let date = new Date();
       let createDate = moment(date).format("yyyyMMDDHHmmss");
 
@@ -275,10 +277,10 @@ class Booking {
       vnp_Params["vnp_TmnCode"] = tmnCode;
       vnp_Params["vnp_Locale"] = locale;
       vnp_Params["vnp_CurrCode"] = currCode;
-      vnp_Params["vnp_TxnRef"] = data.id;
-      vnp_Params["vnp_OrderInfo"] = "Thanh toan cho ma GD:" + data.id;
+      vnp_Params["vnp_TxnRef"] = data;
+      vnp_Params["vnp_OrderInfo"] = "Thanh toan cho ma GD:" + data;
       vnp_Params["vnp_OrderType"] = "Thanh toan VNPAY";
-      vnp_Params["vnp_Amount"] = data.total_money * 100;
+      vnp_Params["vnp_Amount"] = dataBooking?.DT?.total_money * 100;
       vnp_Params["vnp_ReturnUrl"] = returnUrl;
       vnp_Params["vnp_IpAddr"] = ipAddr;
       vnp_Params["vnp_CreateDate"] = createDate;
@@ -356,15 +358,15 @@ class Booking {
   }
 
   async cancelCalendarandNotificationBooking(req, res) {
-    const { data } = req.body; 
+    const { data } = req.body;
     try {
       const data = await BookingService.cancelCalendarandNotificationBooking(
         req.body
       );
-      return res.status(200).json({ 
+      return res.status(200).json({
         EM: data.EM,
         EC: data.EC,
-        DT: data.DT, 
+        DT: data.DT,
       });
     } catch (err) {
       console.log("err <<< ", err);
@@ -377,7 +379,7 @@ class Booking {
   }
 }
 
-function sortObject(obj) { 
+function sortObject(obj) {
   let sorted = {};
   let str = [];
   let key;
