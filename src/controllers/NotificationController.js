@@ -32,7 +32,7 @@ class Notification {
 
   // [POST] /api/v1/notification/read
   async read(req, res) {
-    const { ID_Customer, sortcreatedAt } = req.query;
+    const { ID_Customer, sortcreatedAt , read } = req.query;
 
     try {
       const data = await NotificationService.read(req.query);
@@ -104,7 +104,7 @@ class Notification {
       });
     }
     try {
-      const data = await NotificationService.update(req.body);
+      const data = await NotificationService.update(req.body); 
       return res.status(200).json({
         EM: data.EM,
         EC: data.EC,

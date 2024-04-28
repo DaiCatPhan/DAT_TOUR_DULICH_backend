@@ -30,7 +30,7 @@ const create = async (rawData) => {
 };
 
 const read = async (rawData) => {
-  const { ID_Customer, sortcreatedAt } = rawData;
+  const { ID_Customer, read, sortcreatedAt } = rawData;
 
   try {
     const condition = {};
@@ -39,6 +39,9 @@ const read = async (rawData) => {
     }
     if (sortcreatedAt) {
       condition.sort = ["createdAt", sortcreatedAt];
+    }
+    if (read) {
+      condition.read = read;
     }
 
     const data = await db.Notification.findAndCountAll({
