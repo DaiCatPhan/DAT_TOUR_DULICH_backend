@@ -74,7 +74,7 @@ const create = async (rawData) => {
       ID_User: ID_User,
       ID_Room: ID_Room,
       text: text,
-      unRead: "1",
+      read: 0,
     });
 
     const dataResult = data.get({ plain: true });
@@ -95,6 +95,37 @@ const create = async (rawData) => {
   }
 };
 
+const update = async (rawData) => {
+  try {
+    const { ID_User, ID_Room, read, text } = rawData;
+
+    const data = await db.Message.update(
+      {
+        read: 1,
+      },
+      {
+        where: {
+          ID_Room: ID_Room,
+          ID_User: ID_User,
+        },
+      }
+    );
+
+    return {
+      EM: "Cập nhật trạng thái tin nhắn thành công",
+      EC: 0,
+      DT: data,
+    };
+  } catch (error) {
+    console.log(">>> error", error);
+    return {
+      EM: "Loi server !!!",
+      EC: -5,
+      DT: [],
+    };
+  }
+};
+
 const listRoomOfUser = async (rawData) => {
   try {
     const { userOne } = rawData;
@@ -104,8 +135,11 @@ const listRoomOfUser = async (rawData) => {
       raw: true,
     });
 
+    // tất cả tin nhắn của phòng chat
     for (let i = 0; i < room.length; i++) {
       room[i].messageData = await db.Message.findAll({
+        raw: true,
+        nest: true,
         where: { ID_Room: room[i].id },
         include: [
           {
@@ -123,10 +157,16 @@ const listRoomOfUser = async (rawData) => {
           },
         ],
       });
+    }
 
-      room[i].userOneData = await db.Customer.findOne({
-        where: { id: room[i].userOne },
-      });
+    const unread = room[0].messageData.some((item) => {
+      return item.Customer.email == "admin@gmail.com" && item.read == 0;
+    });
+
+    if (unread) {
+      room[0].count = 1;
+    } else {
+      room[0].count = 0;
     }
 
     return {
@@ -158,23 +198,60 @@ const listRoomOfAdmin = async (rawData) => {
     }
 
     let room = await db.RoomMessage.findAll({
+      raw: true,
+      nest: true,
       where: { userTwo: user.id },
       raw: true,
     });
 
     for (let i = 0; i < room.length; i++) {
       room[i].messageData = await db.Message.findAll({
+        raw: true,
+        nest: true,
         where: { ID_Room: room[i].id },
       });
+
       room[i].userOneData = await db.Customer.findOne({
-        where: { id: room[i].userOne },
+        raw: true,
+        nest: true,
+        where: {
+          id: room[i].userOne,
+        },
+        attributes: {
+          exclude: [
+            "password",
+            "refresh_token",
+            "address",
+            "status",
+            "createdAt",
+            "updatedAt",
+          ],
+        },
       });
     }
+
+    const roomFilter = room?.filter((item) => {
+      return item.messageData.length > 0;
+    });
+
+    const roomResult = roomFilter.map((item) => {
+      const count = item?.messageData?.reduce((total, mes) => {
+        if (mes.ID_User != user?.id && mes.read == 0) {
+          return total + 1;
+        }
+        return total;
+      }, 0);
+
+      return {
+        ...item,
+        count: count,
+      };
+    });
 
     return {
       EM: "Danh sách tin nhắn phòng chát",
       EC: 0,
-      DT: room,
+      DT: roomResult,
     };
   } catch (error) {
     console.log(">>> error", error);
@@ -185,4 +262,11 @@ const listRoomOfAdmin = async (rawData) => {
     };
   }
 };
-export default { create, createRoom, listRoomOfUser, listRoomOfAdmin };
+
+export default {
+  create,
+  createRoom,
+  listRoomOfUser,
+  listRoomOfAdmin,
+  update,
+};

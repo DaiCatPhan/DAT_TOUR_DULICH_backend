@@ -32,7 +32,7 @@ class Message {
 
   // [POST] /api/v1/message/create
   async create(req, res) {
-    const { ID_User, ID_Room, unRead, text } = req.body;
+    const { ID_User, ID_Room, read, text } = req.body;
 
     if (!ID_User || !ID_Room || !text) {
       return res.status(200).json({
@@ -44,6 +44,35 @@ class Message {
 
     try {
       const data = await MessageService.create(req.body);
+      return res.status(200).json({
+        EM: data.EM,
+        EC: data.EC,
+        DT: data.DT,
+      });
+    } catch (err) {
+      console.log("err <<< ", err);
+      return res.status(500).json({
+        EM: "error server", // error message
+        EC: -5, // error code
+        DT: [], // data
+      });
+    }
+  }
+
+  // [POST] /api/v1/message/updateStatusReadUser
+  async update(req, res) {
+    const { ID_User, ID_Room, read, text } = req.body;
+
+    if (!ID_Room) {
+      return res.status(200).json({
+        EM: "Nhập thiếu trường dữ liệu !!!",
+        EC: -2,
+        DT: [],
+      });
+    }
+
+    try {
+      const data = await MessageService.update(req.body);
       return res.status(200).json({
         EM: data.EM,
         EC: data.EC,

@@ -15,7 +15,7 @@ module.exports = {
       ID_Room: {
         type: Sequelize.INTEGER,
       },
-      unRead: {
+      read: {
         type: Sequelize.STRING,
       },
       text: {
