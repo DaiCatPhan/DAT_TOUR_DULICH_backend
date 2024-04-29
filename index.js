@@ -50,23 +50,20 @@ io.on("connection", (socket) => {
     const res = await MessageService.createRoom({ userOne: ID_User });
     if (res) {
       socket.join(+res.DT.id);
-      console.log("tham gia phong chat : ", res.DT.id);
       socket.emit("room_created", res.DT.id);
     }
   });
 
   socket.on("join_room_admin", async (data) => {
     const { room } = data;
-
     socket.join(+room);
     socket.emit("room_created", room);
-    console.log("admin tham gia phong chat : ", room);
   });
 
   socket.on("send_message", async (data) => {
     const { text, room, ID_User } = data;
-    console.log("đata create", data);
-    // socket.broadcast.emit("receive_message", data);
+    console.log("data ", data);
+    socket.broadcast.emit("fetch");
     socket.to(room).emit("receive_message", data);
   });
 });

@@ -352,11 +352,28 @@ const createCancelBooking = async (rawData) => {
   const { id, date_cancel_booking, reason_cancel_booking } = rawData;
 
   try {
-    const booking = await db.BookingTour.findByPk(id, { raw: true });
+    const booking = await db.BookingTour.findByPk(id, {
+      raw: true,
+      nest: true,
+    });
 
     if (!booking) {
       return {
         EM: "Tour đặt không tồn tại",
+        EC: -2,
+        DT: [],
+      };
+    }
+
+    // KIỂM TRA THỜI GIAN HỦY TOUR CÓ HỢP LỆ HAY KHÔNG
+    const dateBooked = new Date(booking.createdAt);
+    const dateCancelBooking = new Date(date_cancel_booking);
+    const dateBookedPlusThreeDays = new Date(dateBooked);
+    dateBookedPlusThreeDays.setDate(dateBookedPlusThreeDays.getDate() + 3);
+
+    if (dateCancelBooking > dateBookedPlusThreeDays) {
+      return {
+        EM: "Đã quá thời gian hủy tour !!!",
         EC: -2,
         DT: [],
       };

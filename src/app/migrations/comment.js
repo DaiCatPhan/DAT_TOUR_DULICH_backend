@@ -16,7 +16,7 @@ module.exports = {
       ID_Tour: {
         type: Sequelize.INTEGER,
       },
-      start: {
+      star: {
         type: Sequelize.INTEGER,
       },
       parentID: {
@@ -26,7 +26,7 @@ module.exports = {
       content: {
         type: Sequelize.STRING,
       },
-      status: {
+      show: {
         type: Sequelize.STRING,
       },
 

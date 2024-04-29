@@ -25,10 +25,10 @@ module.exports = (sequelize, DataTypes) => {
     {
       ID_Customer: DataTypes.INTEGER,
       ID_Tour: DataTypes.INTEGER,
-      start: DataTypes.INTEGER,
+      star: DataTypes.INTEGER,
       parentID: DataTypes.INTEGER,
       content: DataTypes.STRING,
-      status: DataTypes.STRING,
+      show: DataTypes.STRING,
     },
     {
       sequelize,

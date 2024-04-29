@@ -10,7 +10,7 @@ class Destination {
         EM: "Nhập thiếu trường dữ liệu !!!",
         EC: -2,
         DT: [],
-      });
+      }); 
     }
 
     try {
@@ -35,7 +35,7 @@ class Destination {
     try {
       const { ID_Customer } = req.query;
 
-      if (!ID_Customer ) {
+      if (!ID_Customer) {
         return res.status(200).json({
           EM: "Nhập thiếu trường dữ liệu !!!",
           EC: -2,

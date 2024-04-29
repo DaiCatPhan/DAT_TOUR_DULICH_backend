@@ -7,5 +7,7 @@ router.post("/create", CommentController.createComment);
 router.get("/readAll_CMB_BLog", CommentController.getAllCommentByBlogId);
 router.put("/update", CommentController.updateComment);
 router.delete("/delete", Funtion.FunDelete);
+router.get("/readCommentTour", CommentController.readCommentTour);
+router.get("/review", CommentController.review);
 
 export default router;
