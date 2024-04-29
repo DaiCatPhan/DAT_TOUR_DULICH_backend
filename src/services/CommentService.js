@@ -1,8 +1,8 @@
 import { raw } from "express";
 import db from "../app/models";
-const { Op } = require("sequelize");
+const { Op, where } = require("sequelize");
 
-const createComment = async (rawData) => {
+const create = async (rawData) => {
   const { ID_Customer, ID_Blog, ID_Tour, parentID, content, star } = rawData;
 
   try {
@@ -44,8 +44,8 @@ const createComment = async (rawData) => {
   }
 };
 
-const readCommentTour = async (rawData) => {
-  const { ID_Customer, ID_Blog, ID_Tour, parentID, content, star, show } =
+const update = async (rawData) => {
+  const { id, ID_Customer, ID_Blog, ID_Tour, parentID, content, star, show } =
     rawData;
 
   try {
@@ -72,55 +72,6 @@ const readCommentTour = async (rawData) => {
       condition.show = show;
     }
 
-    const data = await db.Comment.findAll(condition, {
-      where: {
-        id: ID_Tour,
-      },
-    });
-
-    return {
-      EM: "Tạo comment thành công ",
-      EC: 0,
-      DT: data,
-    };
-  } catch (error) {
-    console.log(">>> error", error);
-    return {
-      EM: "Loi server !!!",
-      EC: -5,
-      DT: [],
-    };
-  }
-};
-
-const updateComment = async (rawData) => {
-  const { id, ID_Customer, ID_Blog, ID_Tour, parentID, content, star, status } =
-    rawData;
-
-  try {
-    const condition = {};
-    if (ID_Customer) {
-      condition.ID_Customer = ID_Customer;
-    }
-    if (ID_Blog) {
-      condition.ID_Blog = ID_Blog;
-    }
-    if (ID_Tour) {
-      condition.ID_Tour = ID_Tour;
-    }
-    if (parentID) {
-      condition.parentID = parentID;
-    }
-    if (content) {
-      condition.content = content;
-    }
-    if (star) {
-      condition.star = star;
-    }
-    if (status) {
-      condition.status = status;
-    }
-
     const data = await db.Comment.update(condition, {
       where: {
         id: id,
@@ -142,59 +93,54 @@ const updateComment = async (rawData) => {
   }
 };
 
-const getAllCommentsRecursive = async (parentId) => {
-  const childComments = await db.Comment.findAll({
-    where: { parentId },
-    raw: true,
-  });
-
-  for (let i = 0; i < childComments.length; i++) {
-    childComments[i].childComment = await getAllCommentsRecursive(
-      childComments[i].id
-    );
-    childComments[i].customer = await db.Customer.findByPk(
-      childComments[i].ID_Customer,
-      {
-        attributes: ["username"],
-      }
-    );
-  }
-
-  return childComments;
-};
-
-const getAllCommentByBlogId = async (rawData) => {
-  const { id, status } = rawData;
+const readAll = async (rawData) => {
+  const { ID_Tour, star, show, nameTour, createdAt } = rawData;
   try {
     const condition = {};
-    condition.ID_BLog = id;
-    condition.parentID = null;
-    if (status) {
-      condition.status = status;
+    const conditionTour = {};
+
+    if (ID_Tour) {
+      condition.ID_Tour = ID_Tour;
     }
 
-    const topLevelComments = await db.Comment.findAll({
-      where: condition,
-      order: [["createdAt", "DESC"]],
+    if (createdAt) {
+      condition.createdAt = createdAt;
+    }
+
+    if (nameTour) {
+      conditionTour.nameTour = nameTour;
+    }
+
+    if (show) {
+      condition.show = show;
+    }
+
+    if (star) {
+      condition.star = star;
+    }
+
+    const data = await db.Comment.findAll({
       raw: true,
-    });
-
-    for (let i = 0; i < topLevelComments.length; i++) {
-      topLevelComments[i].childComment = await getAllCommentsRecursive(
-        topLevelComments[i].id
-      );
-      topLevelComments[i].customer = await db.Customer.findByPk(
-        topLevelComments[i].ID_Customer,
+      nest: true,
+      where: condition,
+      include: [
         {
-          attributes: ["username"],
-        }
-      );
-    }
+          model: db.Customer,
+          attributes: {
+            exclude: ["createdAt", "updatedAt", "refresh_token", "password"],
+          },
+        },
+        {
+          model: db.Tour,
+          where: conditionTour,
+        },
+      ],
+    });
 
     return {
       EC: 0,
       EM: "Lấy comment thành công",
-      DT: topLevelComments,
+      DT: data,
     };
   } catch (error) {
     console.log(error);
@@ -226,6 +172,14 @@ const review = async (rawData) => {
         where: {
           ID_Tour: item.id,
         },
+        include: [
+          {
+            model: db.Customer,
+            attributes: {
+              exclude: ["createdAt", "updatedAt", "refresh_token", "password"],
+            },
+          },
+        ],
       });
       return {
         ...item,
@@ -306,9 +260,8 @@ const review = async (rawData) => {
 };
 
 export default {
-  updateComment,
-  createComment,
-  getAllCommentByBlogId,
-  readCommentTour,
+  update,
+  create,
+  readAll,
   review,
 };

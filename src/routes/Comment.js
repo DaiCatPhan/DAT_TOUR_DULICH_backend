@@ -3,11 +3,10 @@ const router = express.Router();
 import CommentController from "../controllers/CommentController";
 import Funtion from "../controllers/components/Funtions";
 
-router.post("/create", CommentController.createComment);
-router.get("/readAll_CMB_BLog", CommentController.getAllCommentByBlogId);
-router.put("/update", CommentController.updateComment);
+router.post("/create", CommentController.create);
+router.get("/readAll", CommentController.readAll);
+router.put("/update", CommentController.update);
 router.delete("/delete", Funtion.FunDelete);
-router.get("/readCommentTour", CommentController.readCommentTour);
 router.get("/review", CommentController.review);
 
 export default router;
