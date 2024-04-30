@@ -74,7 +74,7 @@ class Comment {
     } = req.query;
 
     try {
-      const data = await CommentService.readAll(req.query);
+      const data = await CommentService.readAll(req.query); 
       return res.status(200).json({
         EM: data.EM,
         EC: data.EC,

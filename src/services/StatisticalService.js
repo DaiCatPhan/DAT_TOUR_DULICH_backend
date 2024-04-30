@@ -62,6 +62,7 @@ const revenueTour = async (rawData) => {
             [Op.between]: [startOfStartDay, endOfStartDay],
           },
           status: "ĐÃ DUYỆT",
+          payment_status: "ĐÃ THANH TOÁN",
         },
         order: [["total_money", "DESC"]],
         include: [
@@ -88,6 +89,7 @@ const revenueTour = async (rawData) => {
             [Op.between]: [startDay, endDay],
           },
           status: "ĐÃ DUYỆT",
+          payment_status: "ĐÃ THANH TOÁN",
         },
         include: [
           {
@@ -117,6 +119,7 @@ const revenueTour = async (rawData) => {
             [Op.between]: [startDate, endDate],
           },
           status: "ĐÃ DUYỆT",
+          payment_status: "ĐÃ THANH TOÁN",
         },
         include: [
           {
@@ -145,6 +148,7 @@ const revenueTour = async (rawData) => {
             [Op.between]: [startDate, endDate],
           },
           status: "ĐÃ DUYỆT",
+          payment_status: "ĐÃ THANH TOÁN",
         },
         include: [
           {
@@ -163,7 +167,6 @@ const revenueTour = async (rawData) => {
       });
     }
 
-    // Tính doanh thu theo ngay cho từng tour
     bookings.forEach((booking) => {
       const tourId = booking.Calendar.Tour.id;
       const tour = tours.find((tour) => tour.id === tourId);
@@ -171,8 +174,21 @@ const revenueTour = async (rawData) => {
         tour.revenueDay += booking.total_money;
       }
     });
-    // Sắp xếp mảng tours theo trường revenueDay từ cao đến thấp
-    tours?.sort((a, b) => b.revenueDay - a.revenueDay);
+
+    const result = tours.map((tour) => {
+      let numberTicket = 0;
+      bookings.forEach((booking) => {
+        if (booking.Calendar.Tour.id == tour.id) {
+          tour.revenueDay += booking.total_money;
+          numberTicket += booking.numberTicketChild + booking.numberTicketAdult;
+        }
+      });
+
+      return {
+        ...tour,
+        numberTicket: numberTicket,
+      };
+    });
 
     if (startDay && !endDay) {
       return {
@@ -180,7 +196,7 @@ const revenueTour = async (rawData) => {
           "DD-MM-YYYY"
         )}`,
         EC: 0,
-        DT: tours,
+        DT: result,
       };
     }
     if (startDay && endDay) {
@@ -189,21 +205,21 @@ const revenueTour = async (rawData) => {
           "DD-MM-YYYY"
         )} - ${moment(endDay).format("DD-MM-YYYY")}`,
         EC: 0,
-        DT: tours,
+        DT: result,
       };
     }
     if (month) {
       return {
         EM: "Doanh thu từng tour ở tháng : " + month,
         EC: 0,
-        DT: tours,
+        DT: result,
       };
     }
     if (year) {
       return {
         EM: "Doanh thu từng tour ở năm : " + year,
         EC: 0,
-        DT: tours,
+        DT: result,
       };
     }
   } catch (error) {
@@ -232,6 +248,7 @@ const revenueToursMonth = async (rawData) => {
             [Op.between]: [startDate, endDate],
           },
           status: "ĐÃ DUYỆT",
+          payment_status: "ĐÃ THANH TOÁN",
         },
         include: [
           {
@@ -284,6 +301,7 @@ const revenueToursOneYear = async (rawData) => {
         [Op.between]: [startDate, endDate],
       },
       status: "ĐÃ DUYỆT",
+      payment_status: "ĐÃ THANH TOÁN",
     },
     include: [
       {

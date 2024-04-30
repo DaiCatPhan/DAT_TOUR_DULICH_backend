@@ -6,6 +6,22 @@ const create = async (rawData) => {
   const { ID_Customer, ID_Blog, ID_Tour, parentID, content, star } = rawData;
 
   try {
+    // KIỂM TRA COI NÓ CÓ ĐÁNH GIÁ TOUR ĐÓ CHƯA
+    const check = await db.Comment.findOne({
+      where: {
+        ID_Customer: ID_Customer,
+        ID_Tour: ID_Tour,
+      },
+    });
+    if (check) {
+      return {
+        EM: "Bạn đã đánh giá tour này rồi !!!",
+        EC: -2,
+        DT: [],
+      };
+    }
+
+    
     const condition = {};
     if (ID_Customer) {
       condition.ID_Customer = ID_Customer;
