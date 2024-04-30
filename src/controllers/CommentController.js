@@ -63,7 +63,15 @@ class Comment {
 
   // [GET] /api/v1/comment/readAll
   async readAll(req, res) {
-    const { ID_Tour, show, nameTour, createdAt, star } = req.query;
+    const {
+      ID_Tour,
+      show,
+      nameTour,
+      createdAt,
+      star,
+      sortcreatedAt,
+      sortOrder,
+    } = req.query;
 
     try {
       const data = await CommentService.readAll(req.query);

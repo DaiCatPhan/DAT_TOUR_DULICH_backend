@@ -94,9 +94,11 @@ const update = async (rawData) => {
 };
 
 const readAll = async (rawData) => {
-  const { ID_Tour, star, show, nameTour, createdAt } = rawData;
+  const { ID_Tour, star, show, nameTour, createdAt, sortcreatedAt, sortOrder } =
+    rawData;
   try {
     const condition = {};
+    const conditionSort = {};
     const conditionTour = {};
 
     if (ID_Tour) {
@@ -104,11 +106,32 @@ const readAll = async (rawData) => {
     }
 
     if (createdAt) {
-      condition.createdAt = createdAt;
+      const startOfDay = new Date(createdAt);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(createdAt);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      condition.createdAt = {
+        [Op.between]: [startOfDay, endOfDay],
+      };
+    }
+
+    function removeAccentsAndLowerCase(str) {
+      return str
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
     }
 
     if (nameTour) {
-      conditionTour.nameTour = nameTour;
+      const wordsToSearch = removeAccentsAndLowerCase(nameTour)
+        .split(/\s+/)
+        .filter(Boolean);
+      const wordConditions = wordsToSearch.map((word) => ({
+        [Op.like]: `%${word}%`,
+      }));
+
+      conditionTour.name = { [Op.and]: wordConditions };
     }
 
     if (show) {
@@ -119,10 +142,15 @@ const readAll = async (rawData) => {
       condition.star = star;
     }
 
+    if (sortcreatedAt && sortOrder) {
+      conditionSort.sort = [["createdAt", sortOrder]];
+    }
+
     const data = await db.Comment.findAll({
       raw: true,
       nest: true,
       where: condition,
+      order: conditionSort.sort,
       include: [
         {
           model: db.Customer,
@@ -157,6 +185,15 @@ const review = async (rawData) => {
     rawData;
 
   try {
+    let condition = {};
+    if (ID_Tour) {
+      condition.ID_Tour = ID_Tour;
+    }
+
+    if (show) {
+      condition.show = show;
+    }
+
     const tour = await db.Tour.findAll({
       raw: true,
       nest: true,
@@ -169,9 +206,7 @@ const review = async (rawData) => {
       const commentTour = await db.Comment.findAll({
         raw: true,
         nest: true,
-        where: {
-          ID_Tour: item.id,
-        },
+        where: condition,
         include: [
           {
             model: db.Customer,
