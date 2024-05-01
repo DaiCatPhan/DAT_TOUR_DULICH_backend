@@ -153,7 +153,7 @@ const UpImageTour = async (rawData) => {
 };
 
 const getTourWithPagination = async (rawData) => {
-  const { id, name, page, limit, type, startDay } = rawData;
+  const { id, name, page, limit, type } = rawData;
   try {
     const offset = (page - 1) * limit;
     const whereCondition = {};
@@ -204,17 +204,14 @@ const getTourWithPagination = async (rawData) => {
 
     const options = {
       where: whereCondition,
-      limit: limit ? parseInt(limit) : undefined,
-      offset: limit && page ? parseInt(offset) : undefined,
-      include: [
-        {
-          model: db.Calendar,
-        },
-        { model: db.ProcessTour },
-      ],
     };
+    if (limit && offset) {
+      options.limit = +limit;
+      options.offset = +offset;
+    }
 
     const { count, rows } = await db.Tour.findAndCountAll(options);
+
     let data = {
       totalRows: count,
       tours: rows,
@@ -299,17 +296,11 @@ const getToursFilter = async (rawData) => {
     }
 
     let options = {
+      raw: true,
+      nest: true,
       where: whereCondition,
       limit: limit ? parseInt(limit) : undefined,
       offset: limit && page ? parseInt(offset) : undefined,
-      include: [
-        {
-          model: db.Calendar,
-          raw: true,
-          nest: true,
-          where: conditionCalendar,
-        },
-      ],
     };
 
     if (sortBycreatedAt && sortOrder) {
@@ -550,9 +541,25 @@ const getToursFilter = async (rawData) => {
 
     const { count, rows } = await db.Tour.findAndCountAll(options);
 
+    const rowsCustom = rows.map(async (item) => {
+      let calendar = await db.Calendar.findAll({
+        where: {
+          ID_Tour: item.id,
+          ...conditionCalendar,
+        },
+      });
+
+      return {
+        ...item,
+        Calendars: calendar,
+      };
+    });
+
+    const rowsCustomPromise = await Promise.all(rowsCustom);
+
     let data = {
       totalRows: count,
-      tours: rows,
+      tours: rowsCustomPromise,
     };
 
     return {

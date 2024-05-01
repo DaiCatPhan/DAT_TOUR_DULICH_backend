@@ -10,7 +10,7 @@ class Tour {
         priceAdult,
         priceChild,
         numbeOfDay,
-        numberOfNight, 
+        numberOfNight,
         status,
         vehicle,
       } = req.body;
@@ -52,7 +52,13 @@ class Tour {
   // [GET] /api/v1/tour/read
   async read(req, res) {
     try {
-      const { id, statusCalendar , sortStartDayCalendar, numberCalenadar, getAll } = req.query;
+      const {
+        id,
+        statusCalendar,
+        sortStartDayCalendar,
+        numberCalenadar,
+        getAll,
+      } = req.query;
 
       if (!id) {
         return res.status(200).json({
@@ -112,7 +118,7 @@ class Tour {
       return res.status(500).json({
         EM: "error server", // error message
         EC: -5, // error code
-        DT: [], // data
+        DT: [], // data 
       });
     }
   }
