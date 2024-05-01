@@ -1,3 +1,4 @@
+import { where } from "sequelize";
 import db from "../app/models";
 import moment from "moment";
 
@@ -203,10 +204,13 @@ const updateCalendar = async (rawData) => {
       status,
     } = rawData;
 
-    const tour = await db.Tour.findByPk(ID_Tour, { raw: true, nest: true });
-    if (!tour) {
+    const calendar = await db.Calendar.findByPk(ID_Calendar, {
+      raw: true,
+      nest: true,
+    });
+    if (!calendar) {
       return {
-        EM: "Tour không tồn tại !!! ",
+        EM: "Lịch không tồn tại !!! ",
         EC: -2,
         DT: [],
       };
@@ -247,4 +251,63 @@ const updateCalendar = async (rawData) => {
   }
 };
 
-export default { createCalender, createWithMonth, updateCalendar };
+const deleted = async (rawData) => {
+  try {
+    const { ID_Calendar } = rawData;
+
+    const calendar = await db.Calendar.findByPk(ID_Calendar, {
+      raw: true,
+      nest: true,
+    });
+    if (!calendar) {
+      return {
+        EM: "Tour không tồn tại !!! ",
+        EC: -2,
+        DT: [],
+      };
+    }
+
+    // Kiểm tra xem lịch này đã có người đặt hay chưa nếu có thì không được xóa
+
+    const checkCalendar = await db.BookingTour.findOne({
+      raw: true,
+      nest: true,
+
+      where: {
+        ID_Calendar: ID_Calendar,
+      },
+    });
+
+    console.log("checkCalendar", checkCalendar);
+    console.log("ID_Calendar", ID_Calendar);
+
+    if (checkCalendar) {
+      return {
+        EM: "Lịch này đã có khách hàng đặt tour , không xóa được !!!",
+        EC: -2,
+        DT: [],
+      };
+    }
+
+    const deleteCalendar = await db.Calendar.destroy({
+      where: {
+        id: ID_Calendar,
+      },
+    });
+
+    return {
+      EM: "Xóa lịch thành công ",
+      EC: 0,
+      DT: deleteCalendar,
+    };
+  } catch (error) {
+    console.log(">> error", error);
+    return {
+      EM: "Loi server !!!",
+      EC: -5,
+      DT: [],
+    };
+  }
+};
+
+export default { createCalender, createWithMonth, updateCalendar, deleted };

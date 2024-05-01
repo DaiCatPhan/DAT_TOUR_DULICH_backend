@@ -301,6 +301,7 @@ const getToursFilter = async (rawData) => {
       where: whereCondition,
       limit: limit ? parseInt(limit) : undefined,
       offset: limit && page ? parseInt(offset) : undefined,
+      include: [{ model: db.ProcessTour }],
     };
 
     if (sortBycreatedAt && sortOrder) {
@@ -666,23 +667,46 @@ const getTourDetailById = async (rawData) => {
     Tour.Calendars = Calendar;
 
     // Tính số chỗ còn lại
-    if (Tour) {
-      const handleCalendarPromise = Tour.Calendars.map(async (item) => {
-        const sochoConali = await remainingSeats(item.id);
-        return {
-          ...item,
-          remainingSeats: sochoConali,
-        };
-      });
-      const result = await Promise.all(handleCalendarPromise);
-      Tour.Calendars = result;
 
+    const handleCalendarPromise = Tour.Calendars.map(async (item) => {
+      const sochoConali = await remainingSeats(item.id);
       return {
-        EM: "Lấy dữ liệu thành công ",
-        EC: 0,
-        DT: Tour,
+        ...item,
+        remainingSeats: sochoConali,
       };
-    }
+    });
+    const result = await Promise.all(handleCalendarPromise);
+    Tour.Calendars = result;
+
+    // TÍNH SỐ LƯỢT ĐẶT TOUR CỦA MỖI LỊCH
+    let bookingTour = await db.BookingTour.findAndCountAll({
+      raw: true,
+      nest: true,
+    });
+
+    Tour?.Calendars?.forEach((item) => {
+      let numberBill = 0;
+      let numberTicket = 0;
+
+      bookingTour.rows.forEach((booking) => {
+        if (booking.ID_Calendar == item.id) {
+          numberBill += 1;
+          numberTicket +=
+            (booking.numberTicketAdult || 0) + (booking.numberTicketChild || 0);
+        }
+      });
+
+      item.booking = {
+        numberBill: numberBill,
+        numberTicket: numberTicket,
+      };
+    });
+
+    return {
+      EM: "Lấy dữ liệu thành công ",
+      EC: 0,
+      DT: Tour,
+    };
   } catch (error) {
     console.log(">> error", error);
     return {

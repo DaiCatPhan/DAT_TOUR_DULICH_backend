@@ -58,7 +58,7 @@ class Tour {
         sortStartDayCalendar,
         numberCalenadar,
         getAll,
-      } = req.query;
+      } = req.query; 
 
       if (!id) {
         return res.status(200).json({

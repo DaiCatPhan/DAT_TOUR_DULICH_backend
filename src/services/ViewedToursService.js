@@ -43,14 +43,6 @@ const createViewedTour = async (rawData) => {
 const readsViewed = async (rawData) => {
   const { ID_Customer } = rawData;
   try {
-    // const exitCustomer = await db.Customer.findByPk(ID_Customer);
-    // if (!exitCustomer) {
-    //   return {
-    //     EM: "Khách hàng không tồn tại !!!",
-    //     EC: -2,
-    //     DT: [],
-    //   };
-    // }
     let dataViewed = await db.ViewedTour.findAll({
       where: {
         ID_Customer: +ID_Customer,
@@ -63,6 +55,8 @@ const readsViewed = async (rawData) => {
           model: db.Tour,
         },
       ],
+      limit: 6,
+      order: [["createdAt", "DESC"]],
 
       raw: true,
       nest: true,
