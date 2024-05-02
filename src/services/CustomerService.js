@@ -2,7 +2,7 @@ import { Op } from "sequelize";
 import db from "../app/models";
 
 const readAllCustomer = async (rawData) => {
-  const { role, phone, email, username, page, limit } = rawData;
+  const { role, phone, email, username, page, limit, status } = rawData;
 
   try {
     const offset = (page - 1) * limit;
@@ -13,6 +13,10 @@ const readAllCustomer = async (rawData) => {
       } else {
         whereCondition.role = { [Op.like]: `%${role}%` };
       }
+    }
+
+    if (status) {
+      whereCondition.status = status;
     }
 
     if (username) {
@@ -28,23 +32,50 @@ const readAllCustomer = async (rawData) => {
     }
 
     const options = {
+      raw: true,
+      nest: true,
       where: whereCondition,
       limit: limit ? parseInt(limit) : undefined,
       offset: limit && page ? parseInt(offset) : undefined,
       order: [["createdAt", "DESC"]],
-      //   include: [
-      //     {
-      //       model: db.Calendar,
-      //     },
-      //     { model: db.ProcessTour },
-      //   ],
+      attributes: {
+        exclude: ["createdAt", "updatedAt", "refresh_token", "password"],
+      },
     };
 
     const { count, rows } = await db.Customer.findAndCountAll(options);
+
+    // TÍNH SỐ LƯỢT ĐẶT TOUR
+
+    const result = rows.map(async (item) => {
+      const booking = await db.BookingTour.findAndCountAll({
+        where: {
+          ID_Customer: item.id,
+          status: "ĐÃ DUYỆT",
+          payment_status: "ĐÃ THANH TOÁN",
+        },
+      });
+
+      const review = await db.Comment.findAndCountAll({
+        where: {
+          ID_Customer: item.id,
+        },
+      });
+
+      return {
+        ...item,
+        booking: booking.count,
+        review: review.count,
+      };
+    });
+
+    const resultPromise = await Promise.all(result);
+
     let data = {
       totalRows: count,
-      users: rows,
+      users: resultPromise,
     };
+
     return {
       EM: "Lấy dữ liệu thành công ",
       EC: 0,
@@ -80,10 +111,10 @@ const readCustomer = async (rawData) => {
       include: [
         {
           model: db.VoucherUser,
-          include: { model: db.Voucher, where: whereConditionVoucher },
           where: {
-            status: 0,
+            status: 1,
           },
+          include: { model: db.Voucher, where: whereConditionVoucher },
         },
       ],
     };

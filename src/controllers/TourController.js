@@ -58,7 +58,7 @@ class Tour {
         sortStartDayCalendar,
         numberCalenadar,
         getAll,
-      } = req.query; 
+      } = req.query;
 
       if (!id) {
         return res.status(200).json({
@@ -118,7 +118,28 @@ class Tour {
       return res.status(500).json({
         EM: "error server", // error message
         EC: -5, // error code
-        DT: [], // data 
+        DT: [], // data
+      });
+    }
+  }
+
+  // [GET] /api/v1/tour/readAll
+  async readAllMostPopular(req, res) {
+    try {
+      const { page, limit, sortBooking, sortOrder, status } = req.query;
+
+      let data = await TourService.readAllMostPopular(req.query); 
+      return res.status(200).json({
+        EM: data.EM,
+        EC: data.EC,
+        DT: data.DT,
+      });
+    } catch (err) {
+      console.log("err <<< ", err);
+      return res.status(500).json({
+        EM: "error server", // error message
+        EC: -5, // error code
+        DT: [], // data
       });
     }
   }

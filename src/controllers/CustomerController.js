@@ -4,7 +4,7 @@ class Customer {
   // [GET] /api/v1/customer/readAll
   async readAll(req, res) {
     try {
-      const { role, phone, email, username, page, limit } = req.query;
+      const { role, phone, email, username, page, limit,status } = req.query;
 
       let data = await CustomerService.readAllCustomer(req.query);
       return res.status(200).json({

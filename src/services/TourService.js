@@ -717,6 +717,91 @@ const getTourDetailById = async (rawData) => {
   }
 };
 
+const readAllMostPopular = async (rawData) => {
+  const { page, limit, sortBooking, sortOrder, status } = rawData;
+
+  try {
+    const offset = (page - 1) * limit;
+    const conditionTour = {};
+    if (status) {
+      conditionTour.status = status;
+    }
+
+    if (sortBooking && sortOrder) {
+      const tours = await db.Tour.findAndCountAll({
+        raw: true,
+        nest: true,
+        where: conditionTour,
+      });
+
+      const tourPromiseArray = tours?.rows?.map(async (tour) => {
+        const calendarNumberBooking = await db.BookingTour.findAndCountAll({
+          raw: true,
+          nest: true,
+
+          include: [
+            {
+              model: db.Calendar,
+              where: {
+                ID_Tour: tour.id,
+              },
+            },
+          ],
+        });
+        const numberBookingTour = calendarNumberBooking?.rows?.reduce(
+          (total, item) => {
+            return total + (item.numberTicketAdult + item.numberTicketChild);
+          },
+          0
+        );
+
+        return {
+          ...tour,
+          booking: numberBookingTour,
+        };
+      });
+
+      const demsoDonDacTour = await Promise.all(tourPromiseArray);
+
+      let sortedArray = [];
+      if (sortOrder == "ASC") {
+        sortedArray = demsoDonDacTour.sort((a, b) => {
+          const numberBookingA = a ? a.booking : null;
+          const numberBookingB = b ? b.booking : null;
+
+          return numberBookingA - numberBookingB;
+        });
+      } else if (sortOrder == "DESC") {
+        sortedArray = demsoDonDacTour.sort((a, b) => {
+          const numberBookingA = a ? a.booking : null;
+          const numberBookingB = b ? b.booking : null;
+
+          return numberBookingB - numberBookingA;
+        });
+      }
+
+      const totalRows = sortedArray.length;
+      const slicedArray = sortedArray.slice((page - 1) * limit, page * limit);
+
+      return {
+        EM: "Lấy dữ liệu thành công ",
+        EC: 0,
+        DT: {
+          totalRows: totalRows,
+          tours: slicedArray,
+        },
+      };
+    }
+  } catch (err) {
+    console.log(">> loi", err);
+    return {
+      EM: "Loi server !!!",
+      EC: -5,
+      DT: [],
+    };
+  }
+};
+
 export default {
   createTour,
   UpImageTour,
@@ -724,4 +809,5 @@ export default {
   getTourDetailById,
   updateTour,
   getToursFilter,
+  readAllMostPopular,
 };
