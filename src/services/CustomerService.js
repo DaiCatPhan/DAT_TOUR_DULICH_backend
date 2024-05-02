@@ -108,13 +108,16 @@ const readCustomer = async (rawData) => {
 
     const options = {
       where: whereCondition,
+      attributes: {
+        exclude: ["createdAt", "updatedAt", "refresh_token", "password"],
+      },
       include: [
         {
           model: db.VoucherUser,
           where: {
-            status: 1,
+            status: '0',
           },
-          include: { model: db.Voucher, where: whereConditionVoucher },
+          include: { model: db.Voucher, where: whereConditionVoucher }, 
         },
       ],
     };
