@@ -107,22 +107,25 @@ const readCustomer = async (rawData) => {
     }
 
     const options = {
+      raw: true,
+      nest: true,
       where: whereCondition,
       attributes: {
         exclude: ["createdAt", "updatedAt", "refresh_token", "password"],
       },
-      include: [
-        {
-          model: db.VoucherUser,
-          where: {
-            status: '0',
-          },
-          include: { model: db.Voucher, where: whereConditionVoucher }, 
-        },
-      ],
     };
 
     const data = await db.Customer.findOne(options);
+
+    const voucherUsers = await db.VoucherUser.findAll({
+      where: {
+        ID_Customer: data.id,
+        status: "0",
+      },
+      include: [{ model: db.Voucher, where: whereConditionVoucher }],
+    });
+
+    data.VoucherUsers = voucherUsers;
 
     return {
       EM: "Lấy dữ liệu thành công ",

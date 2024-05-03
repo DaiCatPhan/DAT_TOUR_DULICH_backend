@@ -229,6 +229,7 @@ const readBooking = async (rawData) => {
       offset: limit && page ? parseInt(offset) : undefined,
       include: [
         { model: db.Customer },
+        { model: db.Voucher },
         { model: db.Calendar, include: { model: db.Tour } },
       ],
     });
@@ -537,8 +538,6 @@ const createBookingVNPAY = async (rawData) => {
     numberTicketChild,
     user,
   } = rawData;
-
-  console.log("rawData", rawData);
 
   try {
     const Customer = await db.Customer.findByPk(ID_Customer, {

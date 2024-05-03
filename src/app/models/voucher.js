@@ -13,6 +13,10 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: "id",
         foreignKey: "ID_Voucher",
       });
+      Voucher.hasOne(models.BookingTour, {
+        sourceKey: "id",
+        foreignKey: "ID_Voucher",
+      });
     }
   }
   Voucher.init(
