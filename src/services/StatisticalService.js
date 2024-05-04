@@ -7,16 +7,46 @@ const dashboard = async () => {
   try {
     const tour = await db.Tour.count();
     const user = await db.Customer.count();
-    const donHang = await db.BookingTour.count({
+    const calendar = await db.Calendar.count();
+
+    const bookingFail = await db.BookingTour.count({
       where: {
-        status: 0,
+        status: "ĐÃ HỦY",
       },
     });
+
+    const review = await db.Comment.count();
+    const star = await db.Comment.findAndCountAll({
+      raw: true,
+      nest: true,
+    });
+
+    const startResult = await star.rows.reduce((total, item) => {
+      return (total += item.star);
+    }, 0);
+
+    const bookingSuccess = await db.BookingTour.findAndCountAll({
+      raw: true,
+      nest: true,
+      where: {
+        status: "ĐÃ DUYỆT",
+        payment_status: "ĐÃ THANH TOÁN",
+      },
+    });
+
+    const totalMoneyResult = bookingSuccess?.rows?.reduce((total, item) => {
+      return (total += item.total_money);
+    }, 0);
 
     const data = {
       tour,
       user,
-      donHang,
+      calendar,
+      bookingSuccess: bookingSuccess.count,
+      bookingFail: bookingFail,
+      review,
+      star: startResult / star.count,
+      totalMoney: totalMoneyResult,
     };
 
     return {
