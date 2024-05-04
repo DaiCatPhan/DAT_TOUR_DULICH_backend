@@ -128,7 +128,7 @@ class Tour {
     try {
       const { page, limit, sortBooking, sortOrder, status } = req.query;
 
-      let data = await TourService.readAllMostPopular(req.query); 
+      let data = await TourService.readAllMostPopular(req.query);
       return res.status(200).json({
         EM: data.EM,
         EC: data.EC,
@@ -166,7 +166,6 @@ class Tour {
         !type ||
         !priceAdult ||
         !priceChild ||
-        !numberOfNight ||
         !numbeOfDay ||
         !status ||
         !vehicle
