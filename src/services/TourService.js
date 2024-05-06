@@ -569,7 +569,7 @@ const getToursFilter = async (rawData) => {
       DT: data,
     };
   } catch (err) {
-    console.log(">> loi", err);
+    console.log(">> loi >>>", err);
     return {
       EM: "Loi server !!!",
       EC: -5,

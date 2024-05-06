@@ -38,6 +38,78 @@ const dashboard = async () => {
       return (total += item.total_money);
     }, 0);
 
+    // loc 10 khách hàng có lượt đặt tour nhiều nhất
+    const customer = await db.Customer.findAll({
+      raw: true,
+      nest: true,
+      attributes: {
+        exclude: ["createdAt", "updatedAt", "refresh_token", "password"],
+      },
+    });
+
+    const CustomerTop = customer?.map((cus) => {
+      let numberBooking = bookingSuccess.rows.reduce((total, booking) => {
+        if (cus.id == booking.ID_Customer) {
+          return (total += 1);
+        }
+        return total;
+      }, 0);
+
+      return {
+        ...cus,
+        numberBooking: numberBooking,
+      };
+    });
+
+    const CustomerTopPromise = await Promise.all(CustomerTop);
+
+    CustomerTopPromise.sort((a, b) => b.numberBooking - a.numberBooking);
+    const topTenCustomers = CustomerTopPromise.slice(0, 10);
+
+    // lọc 10 tour có lượng khách đạt nhiều nhất
+    const tours = await db.Tour.findAndCountAll({
+      raw: true,
+      nest: true,
+    });
+
+    const tourPromiseArray = tours?.rows?.map(async (tour) => {
+      const calendarNumberBooking = await db.BookingTour.findAndCountAll({
+        raw: true,
+        nest: true,
+
+        include: [
+          {
+            model: db.Calendar,
+            where: {
+              ID_Tour: tour.id,
+            },
+          },
+        ],
+      });
+      const numberBookingTour = calendarNumberBooking?.rows?.reduce(
+        (total, item) => {
+          return total + (item.numberTicketAdult + item.numberTicketChild);
+        },
+        0
+      );
+
+      return {
+        ...tour,
+        booking: numberBookingTour,
+      };
+    });
+
+    const demsoDonDacTour = await Promise.all(tourPromiseArray);
+
+    const sortedArray = demsoDonDacTour.sort((a, b) => {
+      const numberBookingA = a ? a.booking : null;
+      const numberBookingB = b ? b.booking : null;
+
+      return numberBookingB - numberBookingA;
+    });
+
+    const tourTop10 = sortedArray.slice(0, 10);
+
     const data = {
       tour,
       user,
@@ -47,6 +119,8 @@ const dashboard = async () => {
       review,
       star: startResult / star.count,
       totalMoney: totalMoneyResult,
+      CustomerTopPromise: topTenCustomers,
+      TourTop: tourTop10,
     };
 
     return {
@@ -55,7 +129,7 @@ const dashboard = async () => {
       DT: data,
     };
   } catch (error) {
-    console.log("error");
+    console.log("error", error);
     return {
       EM: "Loi server",
       EC: -5,
