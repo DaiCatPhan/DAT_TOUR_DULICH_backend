@@ -49,21 +49,33 @@ const readAllCustomer = async (rawData) => {
 
     const result = rows.map(async (item) => {
       const booking = await db.BookingTour.findAndCountAll({
+        raw: true,
+        nest: true,
         where: {
           ID_Customer: item.id,
           status: "ĐÃ DUYỆT",
           payment_status: "ĐÃ THANH TOÁN",
         },
+        include: [
+          { model: db.Voucher },
+          { model: db.Calendar, include: { model: db.Tour } },
+        ],
       });
 
       const review = await db.Comment.findAndCountAll({
+        raw: true,
+        nest: true,
         where: {
           ID_Customer: item.id,
+          show: "1",
         },
+        include: [{ model: db.Tour }],
       });
 
       return {
         ...item,
+        bookingAr: booking,
+        reviewAr: review,
         booking: booking.count,
         review: review.count,
       };
