@@ -9,16 +9,16 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Notification.belongsTo(models.Calendar, {
+      Notification.belongsTo(models.BookingTour, {
         sourceKey: "id",
-        foreignKey: "ID_Calendar",
+        foreignKey: "ID_BookingTour", 
       });
     }
   }
   Notification.init(
     {
       ID_Customer: DataTypes.INTEGER,
-      ID_Calendar: DataTypes.INTEGER,
+      ID_BookingTour: DataTypes.INTEGER, 
       title: DataTypes.STRING,
       contentHTML: DataTypes.TEXT,
       contentTEXT: DataTypes.TEXT,

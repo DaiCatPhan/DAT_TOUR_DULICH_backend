@@ -9,17 +9,12 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Calendar.belongsTo(models.Tour, { 
+      Calendar.belongsTo(models.Tour, {
         foreignKey: "ID_Tour",
-        targetKey: "id", 
+        targetKey: "id",
       });
 
       Calendar.hasMany(models.BookingTour, {
-        foreignKey: "ID_Calendar",
-        sourceKey: "id",
-      });
-
-      Calendar.hasMany(models.Notification, {
         foreignKey: "ID_Calendar",
         sourceKey: "id",
       });

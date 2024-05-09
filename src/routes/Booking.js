@@ -9,10 +9,7 @@ router.put("/updatePaid", BookingController.updatePaid);
 router.get("/read", BookingController.read);
 router.get("/readAll", BookingController.readAll);
 router.get("/readAllFailBooking", BookingController.readAllFailBooking);
-router.put(
-  "/cancelCalendarandNotificationBooking",
-  BookingController.cancelCalendarandNotificationBooking
-);
+router.put("/notificationFailTour", BookingController.notificationFailTour);
 
 //[POST] /payment/vnpay/create_payment_url
 router.post(

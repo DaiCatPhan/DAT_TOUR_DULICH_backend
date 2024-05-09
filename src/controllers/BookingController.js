@@ -82,6 +82,8 @@ class Booking {
       cancel_booking,
       date_cancel_booking,
       reason_cancel_booking,
+      updateNotification,
+      ID_Notification,
     } = req.body;
 
     if (!id) {
@@ -195,7 +197,8 @@ class Booking {
   }
   // [POST] /api/v1/booking/readAllFailBooking
   async readAllFailBooking(req, res) {
-    const { page, limit } = req.query;
+    const { page, limit, numberDaybeforeGo, conditionTicketThatCancel } =
+      req.query;
 
     try {
       const data = await BookingService.readAllFailBooking(req.query);
@@ -357,12 +360,9 @@ class Booking {
     }
   }
 
-  async cancelCalendarandNotificationBooking(req, res) {
-    const { data } = req.body;
+  async notificationFailTour(req, res) {
     try {
-      const data = await BookingService.cancelCalendarandNotificationBooking(
-        req.body
-      );
+      const data = await BookingService.notificationFailTour(req.body);
       return res.status(200).json({
         EM: data.EM,
         EC: data.EC,

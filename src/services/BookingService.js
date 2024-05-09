@@ -2,6 +2,7 @@ import { raw } from "express";
 import db, { Sequelize, sequelize } from "../app/models";
 const { Op } = require("sequelize");
 import moment from "moment";
+import NotificationService from "./NotificationService";
 
 // Đêm coi cái lịch đó có bao nhiều người đặt rồi ???? thêm điều kiện là != trạng thái đã hủy
 const countBookingTourByIdCalendar = async (ID_Calendar) => {
@@ -99,6 +100,8 @@ const updateBooking = async (rawData) => {
     cancel_booking,
     date_cancel_booking,
     reason_cancel_booking,
+    updateNotification,
+    ID_Notification,
   } = rawData;
 
   try {
@@ -130,7 +133,7 @@ const updateBooking = async (rawData) => {
       condition.cancel_booking = cancel_booking;
     }
     if (date_cancel_booking) {
-      condition.date_cancel_booking = date_cancel_booking;
+      condition.date_cancel_booking = new Date(date_cancel_booking);
     }
     if (reason_cancel_booking) {
       condition.reason_cancel_booking = reason_cancel_booking;
@@ -141,6 +144,13 @@ const updateBooking = async (rawData) => {
         id: id,
       },
     });
+
+    if (updateNotification == "true") {
+      await NotificationService.update({
+        ID_Notification: ID_Notification,
+        read: "3",
+      });
+    }
 
     return {
       EM: "Cập nhật đặt tour thành công ",
@@ -685,15 +695,15 @@ const createBookingVNPAY = async (rawData) => {
 // HỦY TOUR
 const readAllFailBooking = async (rawData) => {
   try {
-    const { page, limit } = rawData;
+    const { page, limit, numberDaybeforeGo, conditionTicketThatCancel } =
+      rawData;
 
     let offset = (page - 1) * +limit;
 
-    const today = new Date();
-    const fiveDaysAgo = new Date(today);
-    fiveDaysAgo.setDate(today.getDate() + 5);
+    let today = new Date();
+    let fiveDaysAgo = moment(today).add(numberDaybeforeGo, "day");
 
-    // Lọc những lịch trước ngày đi 5 ngày
+    // Lọc những lịch trước ngày đi numberDaybeforeGo ngày
     const CalendarBefore5Day = await db.Calendar.findAndCountAll({
       raw: true,
       nest: true,
@@ -744,7 +754,7 @@ const readAllFailBooking = async (rawData) => {
 
         calendar.totalTickets = totalTickets;
 
-        return totalTickets < 10;
+        return totalTickets <= +conditionTicketThatCancel;
       });
 
     const a = {};
@@ -788,7 +798,7 @@ const readAllFailBooking = async (rawData) => {
   }
 };
 
-const cancelCalendarandNotificationBooking = async (rawData) => {
+const notificationFailTour = async (rawData) => {
   const { booking, notification } = rawData;
 
   try {
@@ -811,17 +821,6 @@ const cancelCalendarandNotificationBooking = async (rawData) => {
       };
     }
 
-    const arr_IDBookingTour = booking?.rows?.map((booking) => {
-      return {
-        ID_IDBookingTour: booking?.id,
-      };
-    });
-    const arr_IDCustomer = booking?.rows?.map((customer) => {
-      return {
-        ID_Customer: customer?.ID_Customer,
-      };
-    });
-
     await db.Calendar.update(
       { status: "0" },
       {
@@ -831,35 +830,16 @@ const cancelCalendarandNotificationBooking = async (rawData) => {
       }
     );
 
-    const promisesUpdateBookingTour = arr_IDBookingTour.map(async (item) => {
-      return db.BookingTour.update(
-        {
-          status: "ĐÃ HỦY",
-          payment_status: "HOÀN TIỀN",
-          cancel_booking: "1",
-          date_cancel_booking: new Date(),
-          reason_cancel_booking: "Không đủ người cho lịch tour",
-        },
-        {
-          where: {
-            id: item?.ID_IDBookingTour,
-          },
-        }
-      );
-    });
-    await Promise.all(promisesUpdateBookingTour);
-
-    const promisesNotification = arr_IDCustomer.map(async (item) => {
+    const promisesNotification = booking?.rows?.map(async (item) => {
       return db.Notification.create({
         ID_Customer: item.ID_Customer,
-        ID_Calendar: ID_Calendar,
+        ID_BookingTour: item?.id,
         title: "THÔNG BÁO HỦY TOUR",
         contentHTML: notification?.reason_TEXT,
         contentTEXT: notification?.reason_HTML,
         read: "0",
       });
     });
-    // Chờ tất cả các promise được giải quyết
     await Promise.all(promisesNotification);
 
     return {
@@ -886,5 +866,5 @@ export default {
   createBookingVNPAY,
   updatePaid,
   readAllFailBooking,
-  cancelCalendarandNotificationBooking,
+  notificationFailTour,
 };

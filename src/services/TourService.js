@@ -245,7 +245,8 @@ const getToursFilter = async (rawData) => {
     page,
     limit,
     type,
-    price,
+    priceStart,
+    priceEnd,
     startDay,
     startDayEnd,
     status,
@@ -280,9 +281,15 @@ const getToursFilter = async (rawData) => {
     if (type) {
       whereCondition.type = { [Op.like]: `%${type}%` };
     }
-
-    if (price) {
-      whereCondition.priceAdult = { [Op.gt]: price };
+    
+    if (priceStart) {
+      whereCondition.priceAdult = { [Op.gt]: priceStart };
+    }
+    if (priceEnd) {
+      whereCondition.priceAdult = { [Op.lt]: priceEnd };
+    }
+    if (priceStart && priceEnd) {
+      whereCondition.priceAdult = { [Op.between]: [priceStart, priceEnd] };
     }
 
     if (status) {

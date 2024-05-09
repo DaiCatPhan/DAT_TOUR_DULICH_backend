@@ -11,7 +11,7 @@ module.exports = {
       },
 
       ID_Customer: { type: Sequelize.INTEGER },
-      ID_Calendar: { type: Sequelize.INTEGER },
+      ID_BookingTour: { type: Sequelize.INTEGER },
 
       title: { type: Sequelize.STRING },
       contentHTML: { type: Sequelize.TEXT },

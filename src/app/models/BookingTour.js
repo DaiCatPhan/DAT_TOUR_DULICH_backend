@@ -9,17 +9,21 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      BookingTour.belongsTo(models.Voucher, { 
+      BookingTour.belongsTo(models.Voucher, {
         foreignKey: "ID_Voucher",
         targetKey: "id",
       });
-      BookingTour.belongsTo(models.Calendar, { 
+      BookingTour.belongsTo(models.Calendar, {
         foreignKey: "ID_Calendar",
         targetKey: "id",
       });
       BookingTour.belongsTo(models.Customer, {
         foreignKey: "ID_Customer",
         targetKey: "id",
+      });
+      BookingTour.hasOne(models.Notification, {
+        foreignKey: "ID_BookingTour",
+        sourceKey: "id",
       });
     }
   }
@@ -52,4 +56,3 @@ module.exports = (sequelize, DataTypes) => {
   );
   return BookingTour;
 };
-

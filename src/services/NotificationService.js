@@ -33,12 +33,15 @@ const read = async (rawData) => {
   const { ID_Customer, read, sortcreatedAt } = rawData;
 
   try {
-    const condition = {};
+    const condition = {
+      read: { [Op.in]: ["1", "0"] },
+    };
+    const conditionSort = {};
     if (ID_Customer) {
       condition.ID_Customer = ID_Customer;
     }
     if (sortcreatedAt) {
-      condition.sort = ["createdAt", sortcreatedAt];
+      conditionSort.order = [["createdAt", sortcreatedAt]];
     }
     if (read) {
       condition.read = read;
@@ -48,6 +51,7 @@ const read = async (rawData) => {
       raw: true,
       nest: true,
       where: condition,
+      ...conditionSort,
     });
 
     const countNoRead = data.rows.reduce((total, item) => {
@@ -76,11 +80,34 @@ const readID = async (rawData) => {
 
   try {
     const data = await db.Notification.findOne({
+      raw: true,
+      nest: true,
       where: {
         id: ID_Notification,
       },
-      include: [{ model: db.Calendar, include: { model: db.Tour } }],
+      include: [
+        {
+          raw: true,
+          nest: true,
+          model: db.BookingTour,
+          include: {
+            raw: true,
+            nest: true,
+            model: db.Calendar,
+            include: { raw: true, nest: true, model: db.Tour },
+          },
+        },
+      ],
     });
+
+    const calendarReplace = await db.Calendar.findAll({
+      where: {
+        ID_Tour: data?.BookingTour?.Calendar?.ID_Tour,
+        startDay: { [Op.gt]: data?.BookingTour?.Calendar?.startDay },
+      },
+    });
+
+    data.calendarReplace = calendarReplace;
 
     return {
       EM: "Lấy thông báo thành công ",
@@ -118,7 +145,7 @@ const update = async (rawData) => {
   const { ID_Notification, read, title, contentHTML, contentTEXT } = rawData;
 
   try {
-    const condition = {};
+    const condition = {}; 
     if (read) {
       condition.read = read;
     }
