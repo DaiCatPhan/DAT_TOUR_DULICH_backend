@@ -94,6 +94,7 @@ class Tour {
         page,
         limit,
         type,
+        price,
         startDay,
         startDayEnd,
         status,
@@ -116,7 +117,7 @@ class Tour {
     } catch (err) {
       console.log("err <<< ", err);
       return res.status(500).json({
-        EM: "error server", // error message
+        EM: "error server", // error message 
         EC: -5, // error code
         DT: [], // data
       });

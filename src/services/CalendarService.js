@@ -122,8 +122,8 @@ const createWithMonth = async (rawData) => {
 
     // Kiểm tra startDay phải lớn hơn hoặc bằng ngày hiện tại
 
-    const startDateTime = new Date(startDay);
-    const endDateTime = new Date(endDay);
+    let startDateTime = new Date(startDay);
+    let endDateTime = new Date(endDay);
 
     const currentDateTime = new Date();
 
@@ -160,7 +160,7 @@ const createWithMonth = async (rawData) => {
     }
 
     for (let i = 0; i < numberMonth; i++) {
-      const dataCreate = {
+      let dataCreate = {
         ID_Tour: ID_Tour,
         numberSeat: numberSeat,
         startDay: startDateTime,
@@ -172,8 +172,8 @@ const createWithMonth = async (rawData) => {
 
       await db.Calendar.create(dataCreate);
 
-      startDateTime.setDate(startDateTime.getDate() + 7);
-      endDateTime.setDate(startDateTime.getDate() + (durationTour - 1));
+      startDateTime = moment(startDateTime).add(7, "day");
+      endDateTime = moment(startDateTime).add(durationTour - 1, "day");
     }
 
     return {
@@ -277,9 +277,6 @@ const deleted = async (rawData) => {
         ID_Calendar: ID_Calendar,
       },
     });
-
-    console.log("checkCalendar", checkCalendar);
-    console.log("ID_Calendar", ID_Calendar);
 
     if (checkCalendar) {
       return {

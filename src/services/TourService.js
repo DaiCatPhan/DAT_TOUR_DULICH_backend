@@ -245,6 +245,7 @@ const getToursFilter = async (rawData) => {
     page,
     limit,
     type,
+    price,
     startDay,
     startDayEnd,
     status,
@@ -280,13 +281,17 @@ const getToursFilter = async (rawData) => {
       whereCondition.type = { [Op.like]: `%${type}%` };
     }
 
+    if (price) {
+      whereCondition.priceAdult = { [Op.gt]: price };
+    }
+
     if (status) {
       whereCondition.status = status;
     }
 
     const conditionCalendar = {};
     if (startDay) {
-      conditionCalendar.startDay = { [Op.gt]: startDay };
+      conditionCalendar.startDay = { [Op.gt]: new Date(startDay) };
     }
 
     if (startDay && startDayEnd) {
@@ -549,14 +554,29 @@ const getToursFilter = async (rawData) => {
           ...conditionCalendar,
         },
       });
-
       return {
         ...item,
         Calendars: calendar,
       };
     });
 
-    const rowsCustomPromise = await Promise.all(rowsCustom);
+    let rowsCustomPromise = await Promise.all(rowsCustom);
+
+    if (startDay) {
+      const rowsCustomPromiseFilter = rowsCustomPromise.filter((item) => {
+        return item?.Calendars?.length > 0;
+      });
+      let data = {
+        totalRows: count,
+        tours: rowsCustomPromiseFilter,
+      };
+
+      return {
+        EM: "Lấy dữ liệu thành công ",
+        EC: 0,
+        DT: data,
+      };
+    }
 
     let data = {
       totalRows: count,
@@ -656,12 +676,10 @@ const getTourDetailById = async (rawData) => {
 
     // Lấy hết tích or lấy lịch lớn hơn nhày hiện tại
     if (getAll != "true") {
-      optionsCalendar.startDay = {
+      optionsCalendar.where.startDay = {
         [Op.gte]: new Date(),
       };
     }
-
-    console.log("optionsCalendar", optionsCalendar);
 
     const Calendar = await db.Calendar.findAll(optionsCalendar);
     Tour.Calendars = Calendar;
