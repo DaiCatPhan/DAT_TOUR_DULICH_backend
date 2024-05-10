@@ -138,6 +138,9 @@ const updateBooking = async (rawData) => {
     if (reason_cancel_booking) {
       condition.reason_cancel_booking = reason_cancel_booking;
     }
+    if (ID_Calendar) {
+      condition.ID_Calendar = ID_Calendar;
+    }
 
     const data = await db.BookingTour.update(condition, {
       where: {
