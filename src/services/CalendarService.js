@@ -37,7 +37,7 @@ const createCalender = async (rawData) => {
 
     const currentDateTime = new Date();
 
-    if (startDateTime < currentDateTime) {
+    if (startDateTime <= currentDateTime) {
       return {
         EM: "Ngày bắt đầu phải lớn hơn hoặc bằng ngày hiện tại",
         EC: -3,
@@ -120,12 +120,9 @@ const createWithMonth = async (rawData) => {
       };
     }
 
-    // Kiểm tra startDay phải lớn hơn hoặc bằng ngày hiện tại
-
-    let startDateTime = new Date(startDay);
-    let endDateTime = new Date(endDay);
-
-    const currentDateTime = new Date();
+    let startDateTime = moment(startDay).startOf("day");
+    let endDateTime = moment(endDay).startOf("day");
+    let currentDateTime = moment().startOf("day");
 
     if (startDateTime < currentDateTime) {
       return {
@@ -147,11 +144,15 @@ const createWithMonth = async (rawData) => {
     const numberOfNightTour = tour?.numberOfNight;
     const durationTour = max(numbeOfDayTour, numberOfNightTour);
 
-    const calculatedEndDate = new Date(startDay);
-    calculatedEndDate.setDate(calculatedEndDate.getDate() + (durationTour - 1));
+    const calculatedEndDate = moment(startDateTime).add(
+      durationTour - 1,
+      "day"
+    );
 
     // So sánh ngày kết thúc tính toán được với ngày kết thúc của lịch
-    if (calculatedEndDate.toISOString() !== new Date(endDay).toISOString()) {
+    if (
+      calculatedEndDate.format("DD-MM-YYYY") != endDateTime.format("DD-MM-YYYY")
+    ) {
       return {
         EM: "Ngày kết thúc không phù hợp với số ngày của tour.",
         EC: -3,
