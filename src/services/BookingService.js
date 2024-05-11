@@ -284,7 +284,7 @@ const readAllBooking = async (rawData) => {
       condition.status = status;
     }
     if (payment_status) {
-      condition.payment_status = payment_status;
+      condition.payment_status = payment_status; 
     }
     if (idBookingTour) {
       condition.id = idBookingTour;
